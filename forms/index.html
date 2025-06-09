@@ -6,30 +6,16 @@
     <title>Форми на кибертормоз - Кибертормоз и Дигитална Етика</title>
     <link rel="icon" type="image/png" href="../public/favicon.png">
     <link rel="stylesheet" href="../style.css">
+    <!-- Fancybox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.css">
     <script src="../script.js" defer></script>
 </head>
 <body>
-    <header>
-        <h1><a href="../" style="text-decoration: none; color: inherit;">Кибертормоз и Дигитална Етика</a></h1>
-        <nav>
-            <ul>
-                <li><a href="../what/">Какво е кибертормоз</a></li>
-                <li><a href="../forms/" class="active">Форми</a></li>
-                <li><a href="../channels/">Канали</a></li>
-                <li><a href="../consequences/">Последици</a></li>
-                <li><a href="../protection/">Как да се предпазим</a></li>
-                <li><a href="../victim/">Ако станеш жертва</a></li>
-                <li><a href="../law/">Законодателство</a></li>
-                <li><a href="../statistics/">Статистика</a></li>
-                <li><a href="../resources/">Ресурси</a></li>
-                <li><a href="../contacts/">Контакти</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div id="header-component"></div>
 
     <main>
         <section>
-            <h2>🔹 Форми на кибертормоз</h2>
+            <h2>Форми на кибертормоз</h2>
             <p>Кибертормозът може да приеме различни форми, всяка от които има свои специфични характеристики и последици. Важно е да можем да разпознаем различните видове кибертормоз, за да реагираме адекватно.</p>
             
             <ul class="content-list">
@@ -47,11 +33,90 @@
                 <h3>Важно да знаете</h3>
                 <p>Често кибертормозът комбинира няколко от тези форми едновременно. Ако сте станали жертва на каквато и да е от тези форми, не се колебайте да потърсите помощ от възрастен или да се обърнете към съответните власти.</p>
             </div>
+
+            <div class="content-image">
+                <a href="../public/images/haha.jpg" data-fancybox="gallery" data-caption="Подигравките и обидите онлайн са една от най-честите форми на кибертормоз">
+                    <img src="../public/images/haha.jpg" alt="Пример за кибертормоз с подигравки" />
+                </a>
+                <p class="image-caption bold">Подигравките и обидите онлайн са една от най-честите форми на кибертормоз</p>
+            </div>
         </section>
     </main>
 
-    <footer>
-        <p>Направено от Александър Овчаров, Ангел Ангелов и Ангел Корцалов</p>
-    </footer>
+    <div id="footer-component"></div>
+
+    <style>
+        .content-image {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .content-image img {
+            max-width: 100%;
+            height: auto;
+            border: 3px solid #007acc;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .content-image img:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 122, 204, 0.3);
+        }
+        
+        .image-caption {
+            margin-top: 1rem;
+            font-style: italic;
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 768px) {
+            .content-image {
+                margin: 1.5rem 0;
+            }
+            
+            .content-image img {
+                border-width: 2px;
+                border-radius: 8px;
+            }
+            
+            .image-caption {
+                font-size: 13px;
+                margin-top: 0.8rem;
+            }
+        }
+        
+        .content-image a {
+            display: inline-block;
+            cursor: pointer;
+        }
+        
+        .content-image a:hover img {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 122, 204, 0.3);
+        }
+    </style>
+    
+    <!-- Fancybox JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.js"></script>
+    <script>
+        // Initialize Fancybox
+        Fancybox.bind("[data-fancybox]", {
+            Toolbar: {
+                display: {
+                    left: ["infobar"],
+                    middle: [],
+                    right: []
+                }
+            },
+            closeButton: false,
+            Images: {
+                zoom: true
+            }
+        });
+    </script>
 </body>
 </html> 

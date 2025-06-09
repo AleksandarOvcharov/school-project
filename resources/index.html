@@ -9,23 +9,7 @@
     <script src="../script.js" defer></script>
 </head>
 <body>
-    <header>
-        <h1><a href="../" style="text-decoration: none; color: inherit;">Кибертормоз и Дигитална Етика</a></h1>
-        <nav>
-            <ul>
-                <li><a href="../what/">Какво е кибертормоз</a></li>
-                <li><a href="../forms/">Форми</a></li>
-                <li><a href="../channels/">Канали</a></li>
-                <li><a href="../consequences/">Последици</a></li>
-                <li><a href="../protection/">Как да се предпазим</a></li>
-                <li><a href="../victim/">Ако станеш жертва</a></li>
-                <li><a href="../law/">Законодателство</a></li>
-                <li><a href="../statistics/">Статистика</a></li>
-                <li><a href="../resources/" class="active">Ресурси</a></li>
-                <li><a href="../contacts/">Контакти</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div id="header-component"></div>
 
     <main>
         <section>
@@ -44,7 +28,7 @@
 
             <h3>Международни ресурси</h3>
             <div class="table-container">
-                <table>
+                <table class="bold">
                     <thead>
                         <tr>
                             <th>Организация</th>
@@ -93,12 +77,48 @@
             <h3>Видео ресурси</h3>
             <ul class="content-list">
                 <li>Документални филми</li>
-                <li>Къси видеа</li>
+                <li class="dropdown-item">
+                    <span class="dropdown-toggle" onclick="toggleVideoDropdown()">
+                        Къси видеа <span class="dropdown-arrow">▼</span>
+                    </span>
+                    <div class="dropdown-content" id="videoDropdown">
+                        <div class="video-container">
+                            <h4>Превенция на кибертормоза</h4>
+                            <div class="player-container">
+                                <div id="player-container-2"
+                                     data-type="youtube"
+                                     data-src="https://www.youtube.com/watch?v=rsKPnkGd_F8"
+                                     data-autoplay="false">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-container">
+                            <h4>Сигурност в интернет</h4>
+                            <div class="player-container">
+                                <div id="player-container-2"
+                                     data-type="youtube"
+                                     data-src="https://www.youtube.com/watch?v=rEjneNMLHUk"
+                                     data-autoplay="false">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-container">
+                            <h4>Какво да правим при кибертормоз</h4>
+                            <div class="player-container">
+                                <div id="player-container-2"
+                                     data-type="youtube"
+                                     data-src="https://www.youtube.com/watch?v=vTWaBWwTqEI"
+                                     data-autoplay="false">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
             </ul>
 
             <h3>Препоръчителна литература</h3>
             <div class="table-container">
-                <table>
+                <table class="bold">
                     <thead>
                         <tr>
                             <th>Книга</th>
@@ -144,8 +164,107 @@
         </section>
     </main>
 
-    <footer>
-        <p>Направено от Александър Овчаров, Ангел Ангелов и Ангел Корцалов</p>
-    </footer>
+    <div id="footer-component"></div>
+
+    <style>
+        .dropdown-item {
+            position: relative;
+        }
+        
+        .dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            user-select: none;
+            transition: color 0.3s ease;
+        }
+        
+        .dropdown-toggle:hover {
+            color: #007acc;
+        }
+        
+        .dropdown-arrow {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            margin-left: 8px;
+        }
+        
+        .dropdown-content {
+            display: none;
+            margin-top: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .dropdown-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .dropdown-content.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .video-container {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .video-container:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .video-container h4 {
+            margin: 0 0 15px 0;
+            color: #007acc;
+            font-size: 16px;
+        }
+        
+        .video-container iframe {
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .video-container iframe {
+                height: 200px;
+            }
+        }
+    </style>
+
+    <script>
+        function toggleVideoDropdown() {
+            const dropdown = document.getElementById('videoDropdown');
+            const arrow = document.querySelector('.dropdown-arrow');
+            
+            if (dropdown.classList.contains('active')) {
+                dropdown.classList.remove('active');
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                dropdown.classList.add('active');
+                arrow.style.transform = 'rotate(180deg)';
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/AleksandarOvcharov/omexa-player@latest/dist/omexa-player.min.js"></script>
 </body>
 </html> 

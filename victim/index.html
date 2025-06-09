@@ -6,45 +6,31 @@
     <title>Ако станеш жертва - Кибертормоз и Дигитална Етика</title>
     <link rel="icon" type="image/png" href="../public/favicon.png">
     <link rel="stylesheet" href="../style.css">
+    <!-- Fancybox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.css">
     <script src="../script.js" defer></script>
 </head>
 <body>
-    <header>
-        <h1><a href="../" style="text-decoration: none; color: inherit;">Кибертормоз и Дигитална Етика</a></h1>
-        <nav>
-            <ul>
-                <li><a href="../what/">Какво е кибертормоз</a></li>
-                <li><a href="../forms/">Форми</a></li>
-                <li><a href="../channels/">Канали</a></li>
-                <li><a href="../consequences/">Последици</a></li>
-                <li><a href="../protection/">Как да се предпазим</a></li>
-                <li><a href="../victim/" class="active">Ако станеш жертва</a></li>
-                <li><a href="../law/">Законодателство</a></li>
-                <li><a href="../statistics/">Статистика</a></li>
-                <li><a href="../resources/">Ресурси</a></li>
-                <li><a href="../contacts/">Контакти</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div id="header-component"></div>
 
     <main>
         <section>
-            <h2>🔹 Какво да направиш, ако станеш жертва?</h2>
+            <h2>Какво да направиш, ако станеш жертва?</h2>
             <p>Ако сте станали жертва на кибертормоз, важно е да знаете, че не сте сами и че има конкретни стъпки, които можете да предприемете, за да се защитите и да получите помощ.</p>
             
             <div class="highlight">
-                <h3>🚨 Първи стъпки - СТОП, БЛОКИРАЙ, РАЗКАЖИ</h3>
+                <h3>Първи стъпки - СТОП, БЛОКИРАЙ, РАЗКАЖИ</h3>
                 <div class="cards">
                     <div class="card">
-                        <h4>🛑 СТОП</h4>
+                        <h4>СТОП</h4>
                         <p>Не отговаряйте на агресора. Всеки отговор може да го насърчи да продължи.</p>
                     </div>
                     <div class="card">
-                        <h4>🚫 БЛОКИРАЙ</h4>
+                        <h4>БЛОКИРАЙ</h4>
                         <p>Блокирайте лицето във всички платформи и запазете доказателствата.</p>
                     </div>
                     <div class="card">
-                        <h4>🗣️ РАЗКАЖИ</h4>
+                        <h4>РАЗКАЖИ</h4>
                         <p>Споделете със възрастен - родител, учител или психолог.</p>
                     </div>
                 </div>
@@ -61,7 +47,7 @@
             </ul>
 
             <div class="warning">
-                <h3>⚠️ Важни напомняния</h3>
+                <h3>Важни напомняния</h3>
                 <ul class="content-list">
                     <li><strong>Не се обвинявайте!</strong> Виновен е този, който тормози, не вие</li>
                     <li><strong>Не премълчавайте!</strong> Споделянето с възрастен е винаги правилната стъпка</li>
@@ -71,34 +57,113 @@
                 </ul>
             </div>
 
-            <h3>📞 Контакти за незабавна помощ</h3>
+            <h3>Контакти за незабавна помощ</h3>
             <div class="cards">
                 <div class="card">
-                    <h4>🚨 Спешни случаи</h4>
+                    <h4>Спешни случаи</h4>
                     <p><strong>112</strong> - При заплахи за живот</p>
                     <p><strong>166</strong> - Детска телефонна линия</p>
                 </div>
                 <div class="card">
-                    <h4>💬 Психологическа подкрепа</h4>
+                    <h4>Психологическа подкрепа</h4>
                     <p><strong>0800 19 100</strong> - HelpLine.bg</p>
                     <p>Безплатни консултации 24/7</p>
                 </div>
                 <div class="card">
-                    <h4>🛡️ Кибер престъпления</h4>
+                    <h4>Кибер престъпления</h4>
                     <p><strong>cybercrime@mvr.bg</strong></p>
                     <p>Киберполиция България</p>
                 </div>
             </div>
 
             <div class="success">
-                <h3>✅ Помнете</h3>
+                <h3>Помнете</h3>
                 <p>Кибертормозът е временен. С правилните действия и подкрепа, можете да преодолеете тази ситуация. Много хора са преминали през същото и са излезли по-силни. Не сте сами!</p>
+            </div>
+
+            <div class="content-image">
+                <a href="../public/images/beatup-hate.jpg" data-fancybox="gallery" data-caption="Кибертормозът може да има сериозни последици, но с правилната подкрепа можете да се справите">
+                    <img src="../public/images/beatup-hate.jpg" alt="Последици от кибертормоз" />
+                </a>
+                <p class="image-caption bold">Кибертормозът може да има сериозни последици, но с правилната подкрепа можете да се справите</p>
             </div>
         </section>
     </main>
 
-    <footer>
-        <p>Направено от Александър Овчаров, Ангел Ангелов и Ангел Корцалов</p>
-    </footer>
+    <div id="footer-component"></div>
+
+    <style>
+        .content-image {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .content-image img {
+            max-width: 100%;
+            height: auto;
+            border: 3px solid #007acc;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .content-image img:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 122, 204, 0.3);
+        }
+        
+        .image-caption {
+            margin-top: 1rem;
+            font-style: italic;
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 768px) {
+            .content-image {
+                margin: 1.5rem 0;
+            }
+            
+            .content-image img {
+                border-width: 2px;
+                border-radius: 8px;
+            }
+            
+            .image-caption {
+                font-size: 13px;
+                margin-top: 0.8rem;
+            }
+        }
+        
+        .content-image a {
+            display: inline-block;
+            cursor: pointer;
+        }
+        
+        .content-image a:hover img {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 122, 204, 0.3);
+        }
+    </style>
+    
+    <!-- Fancybox JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.js"></script>
+    <script>
+        // Initialize Fancybox
+        Fancybox.bind("[data-fancybox]", {
+            Toolbar: {
+                display: {
+                    left: ["infobar"],
+                    middle: [],
+                    right: []
+                }
+            },
+            closeButton: false,
+            Images: {
+                zoom: true
+            }
+        });
+    </script>
 </body>
 </html> 

@@ -1,6 +1,50 @@
 // Опростен JavaScript за основна функционалност
 
+// Function to load components
+async function loadComponent(elementId, componentPath) {
+    try {
+        const response = await fetch(componentPath);
+        const html = await response.text();
+        document.getElementById(elementId).innerHTML = html;
+        
+        // Set active navigation
+        if (elementId === 'header-component') {
+            setActiveNav();
+        }
+    } catch (error) {
+        console.error('Error loading component:', error);
+    }
+}
+
+// Function to set active navigation based on current page
+function setActiveNav() {
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('nav a');
+    
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        const href = link.getAttribute('href');
+        
+        // Check for exact match or if current path starts with the href
+        if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
+            link.classList.add('active');
+        }
+        // Special case for home page
+        if (currentPath === '/' && href === '/') {
+            link.classList.add('active');
+        }
+    });
+}
+
+// Load components when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    // Determine the correct path based on current location
+    const isInSubfolder = window.location.pathname !== '/' && window.location.pathname !== '/index.html';
+    const basePath = isInSubfolder ? '../' : './';
+    
+    // Load header and footer components
+    loadComponent('header-component', basePath + 'components/header.html');
+    loadComponent('footer-component', basePath + 'components/footer.html');
     
     // Плавно скролиrane при навигация
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
