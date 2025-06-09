@@ -10,6 +10,8 @@
      { "source": "/statistics", "destination": "/statistics/index.html" },
      { "source": "/victim", "destination": "/victim/index.html" },
      { "source": "/what", "destination": "/what/index.html" }
-   ]
+   ],
+   "cleanUrls": true,
+   "trailingSlash": false
  }
  
