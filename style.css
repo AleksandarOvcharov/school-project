@@ -1,0 +1,371 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+/* Прост и функционален дизайн */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Inter;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: #fff;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    scroll-behavior: smooth;
+}
+
+/* Header */
+header {
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 2px solid #007acc;
+    margin-bottom: 30px;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 100;
+}
+
+header h1 {
+    color: #007acc;
+    font-size: 2.2rem;
+    margin-bottom: 20px;
+    font-family: Inter;
+}
+
+/* Navigation */
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #007acc;
+    padding: 10px 15px;
+    border: 1px solid #007acc;
+    border-radius: 5px;
+    display: block;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    text-align: center;
+    white-space: nowrap;
+    flex: 1;
+    min-width: fit-content;
+}
+
+nav a:hover,
+nav a.active {
+    background: #007acc;
+    color: white;
+}
+
+/* Main content */
+main {
+    margin: 40px 0;
+}
+
+/* Sections */
+section {
+    margin: 40px 0;
+    padding: 30px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+    scroll-margin-top: 100px;
+}
+
+section:first-child {
+    background: #007acc;
+    color: white;
+}
+
+section:first-child h2 {
+    color: white;
+}
+
+/* Typography */
+h2, h3, h4 {
+    color: #007acc;
+    margin-bottom: 15px;
+}
+
+h2 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid #007acc;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+section:first-child h2 {
+    border-bottom-color: white;
+}
+
+h3 {
+    font-size: 1.4rem;
+    border-bottom: 2px solid #007acc;
+    padding-bottom: 10px;
+}
+
+p {
+    margin-bottom: 15px;
+    line-height: 1.7;
+}
+
+/* Cards */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.card {
+    padding: 25px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+}
+
+.card h4 {
+    color: #007acc;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.card ul {
+    list-style-position: inside;
+}
+
+.card li {
+    margin: 8px 0;
+    color: #555;
+}
+
+/* Statistics */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 25px;
+    background: #f0f8ff;
+    border: 1px solid #007acc;
+    border-radius: 8px;
+}
+
+.stat-box h4 {
+    font-size: 2rem;
+    color: #007acc;
+    margin-bottom: 10px;
+}
+
+.stat-box p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    background: #007acc;
+    color: white;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 10px 5px 10px 0;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn:hover {
+    background: #005999;
+}
+
+/* Lists */
+.content-list {
+    list-style: none;
+    margin: 20px 0;
+}
+
+.content-list li {
+    padding: 15px;
+    margin: 10px 0;
+    background: white;
+    border-left: 4px solid #007acc;
+    border-radius: 4px;
+}
+
+.content-list strong {
+    color: #007acc;
+}
+
+/* Ordered lists */
+ol.content-list {
+    counter-reset: item;
+}
+
+ol.content-list li {
+    position: relative;
+    padding-left: 50px;
+}
+
+ol.content-list li::before {
+    content: counter(item);
+    counter-increment: item;
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    background: #007acc;
+    color: white;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* Tables */
+.table-container {
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background: #007acc;
+    color: white;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+/* Special sections */
+.highlight {
+    background: #e6f3ff;
+    border: 1px solid #007acc;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.success {
+    background: #d4edda;
+    border: 1px solid #28a745;
+    color: #155724;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 30px 0;
+    margin-top: 50px;
+    border-top: 2px solid #007acc;
+    color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    nav a {
+        width: 200px;
+        text-align: center;
+    }
+    
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .hero h2 {
+        font-size: 1.6rem;
+    }
+    
+    section {
+        padding: 20px;
+        scroll-margin-top: 120px;
+    }
+    
+    .cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats {
+        grid-template-columns: 1fr;
+    }
+    
+    ol.content-list li {
+        padding-left: 40px;
+    }
+    
+    ol.content-list li::before {
+        left: 10px;
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+    }
+}
+
+/* Links */
+a {
+    color: #007acc;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Focus for accessibility */
+*:focus {
+    outline: 2px solid #007acc;
+    outline-offset: 2px;
+} 
