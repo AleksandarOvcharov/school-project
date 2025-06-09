@@ -146,10 +146,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Затваряне на мобилното меню при клик на връзка
+    const mobileNavLinks = document.querySelectorAll('.nav-menu a');
+    mobileNavLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            const navMenu = document.querySelector('.nav-menu');
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (navMenu && mobileBtn) {
+                navMenu.classList.remove('active');
+                mobileBtn.classList.remove('active');
+            }
+        });
+    });
+    
+    // Затваряне на мобилното меню при клик извън него
+    document.addEventListener('click', function(e) {
+        const navMenu = document.querySelector('.nav-menu');
+        const mobileBtn = document.querySelector('.mobile-menu-btn');
+        const header = document.querySelector('header');
+        
+        if (navMenu && mobileBtn && header) {
+            // Ако кликът е извън header-a и менюто е отворено
+            if (!header.contains(e.target) && navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+                mobileBtn.classList.remove('active');
+            }
+        }
+    });
 });
 
 // Функция за показване/скриване на меню на мобилни устройства
 function toggleMobileMenu() {
-    const nav = document.querySelector('nav ul');
-    nav.style.display = nav.style.display === 'none' ? 'flex' : 'none';
+    const navMenu = document.querySelector('.nav-menu');
+    const mobileBtn = document.querySelector('.mobile-menu-btn');
+    
+    if (navMenu && mobileBtn) {
+        navMenu.classList.toggle('active');
+        mobileBtn.classList.toggle('active');
+    }
 } 
