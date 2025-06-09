@@ -487,3 +487,8 @@ a:hover {
 ul.content-list li{
     font-weight: bold;
 }
+
+ul.sitemap-list li{
+    font-weight: bold;
+    color: black;
+}

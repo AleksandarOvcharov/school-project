@@ -2,7 +2,11 @@
     <div class="footer-content">
         <p>Изработено от Александър Овчаров, Ангел Ангелов и Ангел Корцалов</p>
         <div class="footer-links">
-            <a href="https://github.com/AleksandarOvcharov/school-project" target="_blank" class="github-link" title="Виж проекта в GitHub">
+            <a href="/map/" class="footer-btn map-link" title="Карта на сайта">
+                <i class="fas fa-sitemap"></i>
+                Карта
+            </a>
+            <a href="https://github.com/AleksandarOvcharov/school-project" target="_blank" class="footer-btn github-link" title="Виж проекта в GitHub">
                 <i class="fab fa-github"></i>
                 GitHub
             </a>
@@ -36,14 +40,14 @@
             display: flex;
             justify-content: center;
             gap: 1rem;
+            flex-wrap: wrap;
         }
         
-        .github-link {
+        .footer-btn {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
             padding: 0.5rem 1rem;
-            background: #24292e;
             color: white;
             text-decoration: none;
             border-radius: 4px;
@@ -51,6 +55,14 @@
             font-size: 14px;
             transition: all 0.3s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .footer-btn i {
+            font-size: 14px;
+        }
+        
+        .github-link {
+            background: #24292e;
         }
         
         .github-link:hover {
@@ -61,8 +73,16 @@
             text-decoration: none;
         }
         
-        .github-link i {
-            font-size: 14px;
+        .map-link {
+            background: #007acc;
+        }
+        
+        .map-link:hover {
+            background: #005999;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,122,204,0.3);
+            color: white;
+            text-decoration: none;
         }
         
         @media (max-width: 768px) {
@@ -70,12 +90,12 @@
                 padding: 0 1rem;
             }
             
-            .github-link {
+            .footer-btn {
                 padding: 0.4rem 0.8rem;
                 font-size: 12px;
             }
             
-            .github-link i {
+            .footer-btn i {
                 font-size: 12px;
             }
         }
