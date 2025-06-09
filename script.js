@@ -42,12 +42,9 @@ function setActiveNav() {
 // Load components when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Determine the correct path based on current location
-    const isInSubfolder = window.location.pathname !== '/' && window.location.pathname !== '/index.html';
-    const basePath = isInSubfolder ? '../' : './';
-    
-    // Load header and footer components
-    loadComponent('header-component', basePath + 'components/header.html');
-    loadComponent('footer-component', basePath + 'components/footer.html');
+    const basePath = '/components/';
+    loadComponent('header-component', basePath + 'header.html');
+    loadComponent('footer-component', basePath + 'footer.html');
     
     // Плавно скролиrane при навигация
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
