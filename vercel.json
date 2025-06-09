@@ -1,0 +1,15 @@
+{
+   "rewrites": [
+     { "source": "/contacts", "destination": "/contacts/index.html" },
+     { "source": "/consequences", "destination": "/consequences/index.html" },
+     { "source": "/forms", "destination": "/forms/index.html" },
+     { "source": "/law", "destination": "/law/index.html" },
+     { "source": "/map", "destination": "/map/index.html" },
+     { "source": "/protection", "destination": "/protection/index.html" },
+     { "source": "/resources", "destination": "/resources/index.html" },
+     { "source": "/statistics", "destination": "/statistics/index.html" },
+     { "source": "/victim", "destination": "/victim/index.html" },
+     { "source": "/what", "destination": "/what/index.html" }
+   ]
+ }
+ 
