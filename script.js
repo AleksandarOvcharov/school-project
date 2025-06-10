@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Determine the correct path based on current location
     const basePath = '/components/';
     loadComponent('header-component', basePath + 'header.html');
-    loadComponent('footer-component', basePath + 'footer.html');
+    loadComponent('footer-component', basePath + 'footer.html');    
     
     // Плавно скролиrane при навигация
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
