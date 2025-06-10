@@ -43,7 +43,7 @@ function setActiveNav() {
 document.addEventListener('DOMContentLoaded', function () {
     const basePath = '/components/';
     loadComponent('header-component', basePath + 'header.html');
-    loadComponent('footer-component', basePath + 'footer.html');
+    loadComponent('footer-component', basePath + 'footer.html');    
 
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
     navLinks.forEach(link => {
