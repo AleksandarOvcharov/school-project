@@ -12,6 +12,17 @@
      { "source": "/statistics", "destination": "/statistics/index.html" },
      { "source": "/victim", "destination": "/victim/index.html" },
      { "source": "/what", "destination": "/what/index.html" }
+   ],
+   "headers": [
+     {
+       "source": "/(.*)",
+       "headers": [
+         {
+           "key": "Cache-Control",
+           "value": "public, max-age=0, must-revalidate"
+         }
+       ]
+     }
    ]
  }
  

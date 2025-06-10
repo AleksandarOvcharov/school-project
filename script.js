@@ -40,28 +40,23 @@ function setActiveNav() {
 }
 
 // Load components when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // Determine the correct path based on current location
+document.addEventListener('DOMContentLoaded', function () {
     const basePath = '/components/';
     loadComponent('header-component', basePath + 'header.html');
-    loadComponent('footer-component', basePath + 'footer.html');    
-    
-    // Плавно скролиrane при навигация
+    loadComponent('footer-component', basePath + 'footer.html');
+
     const navLinks = document.querySelectorAll('nav a[href^="#"]');
     navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
             const targetId = this.getAttribute('href').substring(1);
             const target = document.getElementById(targetId);
             if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
     });
-    
+});
     // Анимирани брояци за статистики
     const counters = document.querySelectorAll('.stat-box h4');
     const animateCounters = () => {
@@ -172,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-});
 
 // Функция за показване/скриване на меню на мобилни устройства
 function toggleMobileMenu() {
