@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест за кибертормоз - Кибертормоз и Дигитална Етика</title>
+    <link rel="icon" type="image/png" href="../public/favicon.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="../script.js" defer></script>
+</head>
+<body>
+    <div id="header-component"></div>
+
+    <main>
+        <section>
+            <h2>Тест за кибертормоз и дигитална етика</h2>
+            <p>Тествайте знанията си за кибертормоза, неговите форми и как да се предпазите. Тестът съдържа 10 въпроса с различни нива на трудност.</p>
+            
+            <div id="quiz-container">
+                <div id="quiz-info" class="quiz-section active">
+                    <h3>Готови ли сте?</h3>
+                    <p>Тестът включва въпроси за:</p>
+                    <ul class="content-list">
+                        <li><strong>Определения и характеристики</strong> на кибертормоза</li>
+                        <li><strong>Видове кибертормоз</strong> и техните признаци</li>
+                        <li><strong>Превенция и защита</strong> от кибертормоз</li>
+                        <li><strong>Правни аспекти</strong> и последици</li>
+                        <li><strong>Дигитална етика</strong> и отговорно поведение онлайн</li>
+                    </ul>
+                    <button id="start-quiz" class="btn">Започнете теста</button>
+                </div>
+
+                <div id="quiz-questions" class="quiz-section">
+                    <div id="progress-bar">
+                        <div id="progress" style="width: 0%"></div>
+                    </div>
+                    <div id="question-counter">Въпрос <span id="current-question">1</span> от <span id="total-questions">10</span></div>
+                    
+                    <div id="question-container">
+                        <h3 id="question-text"></h3>
+                        <div id="answers-container"></div>
+                    </div>
+                    
+                    <div class="quiz-controls">
+                        <button id="prev-btn" class="btn" style="display: none;">Предишен</button>
+                        <button id="next-btn" class="btn">Следващ</button>
+                        <button id="submit-btn" class="btn" style="display: none;">Завършете теста</button>
+                    </div>
+                </div>
+
+                <div id="quiz-results" class="quiz-section">
+                    <h3 class="center">Резултати от теста</h3>
+                    <div id="score-display">
+                        <div class="score-circle">
+                            <span id="score-percentage">0%</span>
+                        </div>
+                        <p id="score-text"></p>
+                    </div>
+                    
+                    <div id="performance-analysis">
+                        <h4>Анализ на резултатите</h4>
+                        <div id="categories-breakdown"></div>
+                    </div>
+                    
+                    <div class="quiz-actions">
+                        <button id="retry-quiz" class="btn">Опитайте отново</button>
+                        <button id="review-answers" class="btn">Прегледайте отговорите</button>
+                    </div>
+                </div>
+
+                <div id="quiz-review" class="quiz-section">
+                    <h3>Преглед на отговорите</h3>
+                    <div id="review-container"></div>
+                    <button id="back-to-results" class="btn">Обратно към резултатите</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-component"></div>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
