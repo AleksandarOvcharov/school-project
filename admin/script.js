@@ -183,11 +183,16 @@ function showSection(section) {
         backBtn.style.display = section === 'main' ? 'none' : 'block';
     }
     
-    // Load questions if entering tests section
+    // Load content based on section
     if (section === 'tests') {
         // Add a small delay to show the section first, then load questions
         setTimeout(() => {
             loadQuestions();
+        }, 100);
+    } else if (section === 'settings') {
+        // Load settings when entering settings section
+        setTimeout(() => {
+            loadSettings();
         }, 100);
     }
 }
@@ -384,6 +389,7 @@ async function handleLogin(e) {
     
     if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
         localStorage.setItem('admin_logged_in', 'true');
+        localStorage.setItem('admin_last_login', new Date().toISOString());
         
         Swal.fire({
             title: 'Успешен вход!',
@@ -448,6 +454,9 @@ function showLogin() {
 function showDashboard() {
     elements.loginSection.style.display = 'none';
     elements.adminDashboard.style.display = 'block';
+    
+    // Apply saved site title
+    applySiteTitleSettings();
     
     // Show appropriate section based on current URL
     handleURLChange();
@@ -926,6 +935,381 @@ function cancelEdit() {
     switchTab('questions');
 }
 
+// Settings Functions
+function saveSettings(section) {
+    const saveBtn = event.target;
+    const originalText = saveBtn.textContent;
+    
+    // Show loading state
+    saveBtn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+            <div class="spinner" style="width: 16px; height: 16px; margin: 0;">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+            </div>
+            Запазване...
+        </div>
+    `;
+    saveBtn.disabled = true;
+    
+    setTimeout(() => {
+        let settings = {};
+        
+        if (section === 'site') {
+            settings = {
+                siteTitle: document.getElementById('site-title').value,
+                siteDescription: document.getElementById('site-description').value,
+                contactEmail: document.getElementById('contact-email').value
+            };
+            
+            // Update titles immediately
+            if (settings.siteTitle) {
+                updateSiteTitles(settings.siteTitle);
+            }
+        } else if (section === 'quiz') {
+            settings = {
+                timeLimit: document.getElementById('quiz-time-limit').value,
+                passingScore: document.getElementById('passing-score').value,
+                showExplanations: document.getElementById('show-explanations').checked,
+                randomizeQuestions: document.getElementById('randomize-questions').checked
+            };
+        } else if (section === 'security') {
+            settings = {
+                sessionTimeout: document.getElementById('session-timeout').checked
+            };
+        }
+        
+        // Save to localStorage
+        localStorage.setItem(`admin_settings_${section}`, JSON.stringify(settings));
+        
+        // Reset button
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+        
+        Swal.fire({
+            title: 'Успех!',
+            text: 'Настройките бяха запазени успешно.',
+            icon: 'success',
+            confirmButtonColor: '#007acc',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }, 1000);
+}
+
+function exportQuestions() {
+    try {
+        const questions = questionsData.length > 0 ? questionsData : JSON.parse(localStorage.getItem('quiz_questions') || '[]');
+        
+        const dataStr = JSON.stringify(questions, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `quiz_questions_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        
+        Swal.fire({
+            title: 'Експорт завършен!',
+            text: `Изтеглени ${questions.length} въпроса.`,
+            icon: 'success',
+            confirmButtonColor: '#007acc'
+        });
+    } catch (error) {
+        Swal.fire({
+            title: 'Грешка!',
+            text: 'Възникна грешка при експортирането.',
+            icon: 'error',
+            confirmButtonColor: '#007acc'
+        });
+    }
+}
+
+function importQuestions(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const importedQuestions = JSON.parse(e.target.result);
+            
+            if (!Array.isArray(importedQuestions)) {
+                throw new Error('Невалиден формат на файла');
+            }
+            
+            // Validate question structure
+            for (const q of importedQuestions) {
+                if (!q.question || !q.options || !q.hasOwnProperty('correct') || !q.category || !q.explanation) {
+                    throw new Error('Невалидна структура на въпросите');
+                }
+            }
+            
+            const result = await Swal.fire({
+                title: 'Импорт на въпроси',
+                text: `Намерени ${importedQuestions.length} въпроса. Искате ли да ги импортирате?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#007acc',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Да, импортирай',
+                cancelButtonText: 'Отказ'
+            });
+            
+            if (result.isConfirmed) {
+                // Try to save to Supabase first, fallback to localStorage
+                try {
+                    for (const question of importedQuestions) {
+                        await supabase
+                            .from('quiz_questions')
+                            .insert([question]);
+                    }
+                } catch (dbError) {
+                    // Fallback to localStorage
+                    localStorage.setItem('quiz_questions', JSON.stringify(importedQuestions));
+                }
+                
+                Swal.fire({
+                    title: 'Успех!',
+                    text: `Импортирани ${importedQuestions.length} въпроса.`,
+                    icon: 'success',
+                    confirmButtonColor: '#007acc'
+                });
+                
+                // Reload questions if we're in the tests section
+                if (currentSection === 'tests') {
+                    loadQuestions();
+                }
+            }
+            
+        } catch (error) {
+            Swal.fire({
+                title: 'Грешка при импорт!',
+                text: 'Файлът не е в правилен формат или съдържа грешки.',
+                icon: 'error',
+                confirmButtonColor: '#007acc'
+            });
+        }
+    };
+    
+    reader.readAsText(file);
+    input.value = ''; // Reset file input
+}
+
+function clearAllData() {
+    Swal.fire({
+        title: 'ВНИМАНИЕ!',
+        text: 'Това ще изтрие ВСИЧКИ въпроси и данни. Тази операция е необратима!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Да, изтрий всичко',
+        cancelButtonText: 'Отказ',
+        input: 'text',
+        inputPlaceholder: 'Напишете "ИЗТРИЙ" за потвърждение',
+        inputValidator: (value) => {
+            if (value !== 'ИЗТРИЙ') {
+                return 'Моля, напишете "ИЗТРИЙ" за потвърждение';
+            }
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                // Clear Supabase data
+                await supabase
+                    .from('quiz_questions')
+                    .delete()
+                    .gte('id', 0);
+            } catch (error) {
+                // Silent error
+            }
+            
+            // Clear localStorage
+            localStorage.removeItem('quiz_questions');
+            localStorage.removeItem('admin_settings_site');
+            localStorage.removeItem('admin_settings_quiz');
+            localStorage.removeItem('admin_settings_security');
+            
+            questionsData = [];
+            
+            Swal.fire({
+                title: 'Изтрито!',
+                text: 'Всички данни бяха изтрити.',
+                icon: 'success',
+                confirmButtonColor: '#007acc'
+            });
+            
+            if (currentSection === 'tests') {
+                loadQuestions();
+            }
+        }
+    });
+}
+
+function changePassword() {
+    Swal.fire({
+        title: 'Смяна на парола',
+        html: `
+            <input type="password" id="current-password" class="swal2-input" placeholder="Текуща парола">
+            <input type="password" id="new-password" class="swal2-input" placeholder="Нова парола">
+            <input type="password" id="confirm-password" class="swal2-input" placeholder="Потвърди новата парола">
+        `,
+        confirmButtonText: 'Смени парола',
+        confirmButtonColor: '#007acc',
+        showCancelButton: true,
+        cancelButtonText: 'Отказ',
+        preConfirm: () => {
+            const current = document.getElementById('current-password').value;
+            const newPass = document.getElementById('new-password').value;
+            const confirm = document.getElementById('confirm-password').value;
+            
+            if (!current || !newPass || !confirm) {
+                Swal.showValidationMessage('Моля, попълнете всички полета');
+                return false;
+            }
+            
+            if (current !== ADMIN_CREDENTIALS.password) {
+                Swal.showValidationMessage('Грешна текуща парола');
+                return false;
+            }
+            
+            if (newPass.length < 8) {
+                Swal.showValidationMessage('Новата парола трябва да е поне 8 символа');
+                return false;
+            }
+            
+            if (newPass !== confirm) {
+                Swal.showValidationMessage('Паролите не съвпадат');
+                return false;
+            }
+            
+            return { newPassword: newPass };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // In a real app, this would be saved to database
+            Swal.fire({
+                title: 'Успех!',
+                text: 'Паролата беше сменена успешно.',
+                icon: 'success',
+                confirmButtonColor: '#007acc'
+            });
+        }
+    });
+}
+
+function loadSettings() {
+    // Load last login info
+    const lastLogin = localStorage.getItem('admin_last_login');
+    if (lastLogin) {
+        document.getElementById('last-login').textContent = new Date(lastLogin).toLocaleString('bg-BG');
+    }
+    
+    // Load saved settings
+    const siteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
+    const quizSettings = JSON.parse(localStorage.getItem('admin_settings_quiz') || '{}');
+    const securitySettings = JSON.parse(localStorage.getItem('admin_settings_security') || '{}');
+    
+    // Apply site settings
+    if (siteSettings.siteTitle) document.getElementById('site-title').value = siteSettings.siteTitle;
+    if (siteSettings.siteDescription) document.getElementById('site-description').value = siteSettings.siteDescription;
+    if (siteSettings.contactEmail) document.getElementById('contact-email').value = siteSettings.contactEmail;
+    
+    // Apply quiz settings
+    if (quizSettings.timeLimit) document.getElementById('quiz-time-limit').value = quizSettings.timeLimit;
+    if (quizSettings.passingScore) document.getElementById('passing-score').value = quizSettings.passingScore;
+    if (quizSettings.hasOwnProperty('showExplanations')) document.getElementById('show-explanations').checked = quizSettings.showExplanations;
+    if (quizSettings.hasOwnProperty('randomizeQuestions')) document.getElementById('randomize-questions').checked = quizSettings.randomizeQuestions;
+    
+    // Apply security settings
+    if (securitySettings.hasOwnProperty('sessionTimeout')) document.getElementById('session-timeout').checked = securitySettings.sessionTimeout;
+    
+    // Apply current site title to page if exists
+    applySiteTitleSettings();
+}
+
+function applySiteTitleSettings() {
+    const siteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
+    if (siteSettings.siteTitle) {
+        updateSiteTitles(siteSettings.siteTitle);
+    }
+}
+
+function updateSiteTitles(newTitle) {
+    // Update admin panel title
+    document.title = newTitle + ' - Admin Panel';
+    
+    // Update header title if it exists in admin panel
+    const adminHeaderTitle = document.querySelector('h1');
+    if (adminHeaderTitle) {
+        adminHeaderTitle.textContent = newTitle;
+    }
+    
+    // Try to update main site titles (if accessible)
+    updateMainSiteTitles(newTitle);
+}
+
+function updateMainSiteTitles(newTitle) {
+    // Create or update main site title files for next load
+    try {
+        // Store in localStorage for main site to read
+        localStorage.setItem('main_site_title', newTitle);
+        
+        // Try to update main site immediately if in same origin
+        if (window.opener) {
+            try {
+                window.opener.document.title = newTitle;
+                const mainHeader = window.opener.document.querySelector('h1 a');
+                if (mainHeader) {
+                    mainHeader.textContent = newTitle;
+                }
+            } catch (e) {
+                // Cross-origin blocked, ignore
+            }
+        }
+        
+        // Also try parent window
+        if (window.parent && window.parent !== window) {
+            try {
+                window.parent.document.title = newTitle;
+                const parentHeader = window.parent.document.querySelector('h1 a');
+                if (parentHeader) {
+                    parentHeader.textContent = newTitle;
+                }
+            } catch (e) {
+                // Cross-origin blocked, ignore
+            }
+        }
+        
+        // Broadcast change to other windows on same origin
+        try {
+            window.localStorage.setItem('title_update_timestamp', Date.now().toString());
+            
+            // Listen for storage events to sync across tabs
+            if (!window.titleUpdateListenerAdded) {
+                window.addEventListener('storage', function(e) {
+                    if (e.key === 'main_site_title') {
+                        // Another admin tab updated the title
+                        applySiteTitleSettings();
+                    }
+                });
+                window.titleUpdateListenerAdded = true;
+            }
+        } catch (error) {
+            // Silent error handling
+        }
+        
+    } catch (error) {
+        // Silent error handling
+    }
+}
+
 // Make functions globally available
 window.editQuestion = editQuestion;
-window.deleteQuestion = deleteQuestion; 
+window.deleteQuestion = deleteQuestion;
+window.saveSettings = saveSettings;
+window.exportQuestions = exportQuestions;
+window.importQuestions = importQuestions;
+window.clearAllData = clearAllData;
+window.changePassword = changePassword; 

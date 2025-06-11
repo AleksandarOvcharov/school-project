@@ -14,8 +14,11 @@ async function loadComponent(elementId, componentPath) {
         if (elementId === 'header-component') {
             setActiveNav();
         }
+        
+        return true; // Indicate success
     } catch (error) {
         console.error('Error loading component:', error);
+        return false; // Indicate failure
     }
 }
 
@@ -39,10 +42,41 @@ function setActiveNav() {
     });
 }
 
+// Function to apply saved site title
+function applySavedSiteTitle() {
+    try {
+        const savedTitle = localStorage.getItem('main_site_title');
+        if (savedTitle) {
+            // Update page title
+            document.title = savedTitle;
+            
+            // Update header title when header is loaded
+            setTimeout(() => {
+                const headerTitle = document.querySelector('h1 a');
+                if (headerTitle) {
+                    headerTitle.textContent = savedTitle;
+                }
+            }, 100);
+        }
+    } catch (error) {
+        // Silent error handling
+    }
+}
+
+// Listen for title updates from admin panel
+window.addEventListener('storage', function(e) {
+    if (e.key === 'main_site_title') {
+        applySavedSiteTitle();
+    }
+});
+
 // Load components when page loads
 document.addEventListener('DOMContentLoaded', function () {
     const basePath = '/components/';
-    loadComponent('header-component', basePath + 'header.html');
+    loadComponent('header-component', basePath + 'header.html').then(() => {
+        // Apply saved title after header is loaded
+        applySavedSiteTitle();
+    });
     loadComponent('footer-component', basePath + 'footer.html');    
 
     const navLinks = document.querySelectorAll('nav a[href^="#"]');

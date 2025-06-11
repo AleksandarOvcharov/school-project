@@ -30,14 +30,24 @@
                         <li><strong>Правни аспекти</strong> и последици</li>
                         <li><strong>Дигитална етика</strong> и отговорно поведение онлайн</li>
                     </ul>
+                    <div class="quiz-details">
+                        <!-- Dynamic content will be loaded here -->
+                    </div>
                     <button id="start-quiz" class="btn">Започнете теста</button>
                 </div>
 
                 <div id="quiz-questions" class="quiz-section">
-                    <div id="progress-bar">
-                        <div id="progress" style="width: 0%"></div>
+                    <div class="quiz-header">
+                        <div id="progress-bar">
+                            <div id="progress" style="width: 0%"></div>
+                        </div>
+                        <div class="quiz-info-row">
+                            <div id="question-counter">Въпрос <span id="current-question">1</span> от <span id="total-questions">10</span></div>
+                            <div id="timer-display" class="timer">
+                                <span id="time-remaining">15:00</span>
+                            </div>
+                        </div>
                     </div>
-                    <div id="question-counter">Въпрос <span id="current-question">1</span> от <span id="total-questions">10</span></div>
                     
                     <div id="question-container">
                         <h3 id="question-text"></h3>

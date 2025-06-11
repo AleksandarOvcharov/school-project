@@ -183,10 +183,128 @@
 
                 <!-- Settings Section -->
                 <div id="settings-section" class="admin-section" style="display: none;">
-                    <div class="coming-soon">
-                        <div class="coming-soon-icon"><i class="fas fa-cog"></i></div>
-                        <h4>Скоро ще бъде налично</h4>
-                        <p>Тази функция се разработва активно и ще бъде добавена в следващата версия.</p>
+                    <div class="settings-container">
+                        <div class="settings-grid">
+                            <!-- Site Settings -->
+                            <div class="settings-card">
+                                <div class="settings-card-header">
+                                    <i class="fas fa-globe"></i>
+                                    <h3>Настройки на сайта</h3>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="setting-item">
+                                        <label for="site-title">Заглавие на сайта:</label>
+                                        <input type="text" id="site-title" value="Кибертормоз и Дигитална Етика">
+                                    </div>
+                                    <div class="setting-item">
+                                        <label for="site-description">Описание:</label>
+                                        <textarea id="site-description" rows="3">Образователна платформа за кибербезопасност и дигитална етика</textarea>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label for="contact-email">Контактен имейл:</label>
+                                        <input type="email" id="contact-email" placeholder="admin@example.com">
+                                    </div>
+                                </div>
+                                <div class="settings-card-footer">
+                                    <button class="save-settings-btn" onclick="saveSettings('site')">Запази</button>
+                                </div>
+                            </div>
+
+                            <!-- Quiz Settings -->
+                            <div class="settings-card">
+                                <div class="settings-card-header">
+                                    <i class="fas fa-clipboard-question"></i>
+                                    <h3>Настройки на теста</h3>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="setting-item">
+                                        <label for="quiz-time-limit">Време за решаване (минути):</label>
+                                        <input type="number" id="quiz-time-limit" value="15" min="5" max="60">
+                                    </div>
+                                    <div class="setting-item">
+                                        <label for="passing-score">Минимален резултат за преминаване (%):</label>
+                                        <input type="number" id="passing-score" value="70" min="50" max="100">
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>
+                                            <input type="checkbox" id="show-explanations" checked>
+                                            Показвай обяснения след теста
+                                        </label>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>
+                                            <input type="checkbox" id="randomize-questions">
+                                            Разбъркай въпросите
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="settings-card-footer">
+                                    <button class="save-settings-btn" onclick="saveSettings('quiz')">Запази</button>
+                                </div>
+                            </div>
+
+                            <!-- Data Management -->
+                            <div class="settings-card">
+                                <div class="settings-card-header">
+                                    <i class="fas fa-database"></i>
+                                    <h3>Управление на данни</h3>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="setting-item">
+                                        <label>Експорт на въпроси:</label>
+                                        <button class="action-btn" onclick="exportQuestions()">
+                                            <i class="fas fa-download"></i> Изтегли JSON
+                                        </button>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>Импорт на въпроси:</label>
+                                        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importQuestions(this)">
+                                        <button class="action-btn" onclick="document.getElementById('import-file').click()">
+                                            <i class="fas fa-upload"></i> Качи JSON
+                                        </button>
+                                    </div>
+                                    <div class="setting-item danger-zone">
+                                        <label>Опасна зона:</label>
+                                        <button class="danger-btn" onclick="clearAllData()">
+                                            <i class="fas fa-trash-alt"></i> Изчисти всички данни
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Security Settings -->
+                            <div class="settings-card">
+                                <div class="settings-card-header">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <h3>Настройки за сигурност</h3>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="setting-item">
+                                        <label for="admin-username">Потребителско име:</label>
+                                        <input type="text" id="admin-username" value="admin" readonly>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>Смяна на парола:</label>
+                                        <button class="action-btn" onclick="changePassword()">
+                                            <i class="fas fa-key"></i> Смени парола
+                                        </button>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>
+                                            <input type="checkbox" id="session-timeout" checked>
+                                            Автоматичен изход след 30 минути
+                                        </label>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>Последен вход:</label>
+                                        <span class="info-text" id="last-login">--</span>
+                                    </div>
+                                </div>
+                                <div class="settings-card-footer">
+                                    <button class="save-settings-btn" onclick="saveSettings('security')">Запази</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

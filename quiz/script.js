@@ -127,6 +127,16 @@ let currentQuestion = 0;
 let userAnswers = [];
 let quizStarted = false;
 let quizCompleted = false;
+let quizTimer = null;
+let timeRemaining = 0;
+
+// Quiz settings from admin panel
+let quizSettings = {
+    timeLimit: 15, // minutes
+    passingScore: 70, // percentage
+    showExplanations: true,
+    randomizeQuestions: false
+};
 
 // Category tracking
 const categories = {
@@ -174,11 +184,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize Supabase
     await initializeSupabase();
     
+    // Load admin settings
+    loadQuizSettings();
+    
     // Load questions from database
     await loadQuizQuestions();
     
+    // Apply randomization if enabled
+    if (quizSettings.randomizeQuestions) {
+        shuffleArray(quizData);
+    }
+    
     setupEventListeners();
     elements.totalQuestions.textContent = quizData.length;
+    
+    // Update UI with settings
+    updateQuizInfoDisplay();
 });
 
 async function initializeSupabase() {
@@ -190,6 +211,51 @@ async function initializeSupabase() {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (error) {
         // Supabase not available, use fallback data
+    }
+}
+
+function loadQuizSettings() {
+    try {
+        const savedSettings = localStorage.getItem('admin_settings_quiz');
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            
+            if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
+            if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
+            if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
+            if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
+        }
+    } catch (error) {
+        // Use default settings if error
+    }
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function updateQuizInfoDisplay() {
+    // Update info section with current settings
+    const infoSection = document.querySelector('#quiz-info .quiz-details');
+    if (infoSection) {
+        infoSection.innerHTML = `
+            <div class="info-item">
+                <strong>Брой въпроси:</strong> ${quizData.length}
+            </div>
+            <div class="info-item">
+                <strong>Време за решаване:</strong> ${quizSettings.timeLimit} минути
+            </div>
+            <div class="info-item">
+                <strong>Минимален резултат:</strong> ${quizSettings.passingScore}%
+            </div>
+            <div class="info-item">
+                <strong>Обяснения:</strong> ${quizSettings.showExplanations ? 'Да' : 'Не'}
+            </div>
+            ${quizSettings.randomizeQuestions ? '<div class="info-item"><strong>Въпросите са разбъркани</strong></div>' : ''}
+        `;
     }
 }
 
@@ -235,6 +301,11 @@ function startQuiz() {
     quizStarted = true;
     currentQuestion = 0;
     userAnswers = [];
+    
+    // Initialize timer
+    timeRemaining = quizSettings.timeLimit * 60; // Convert minutes to seconds
+    startTimer();
+    
     showSection('questions');
     displayQuestion();
 }
@@ -334,6 +405,7 @@ function submitQuiz() {
         return;
     }
     
+    stopTimer();
     quizCompleted = true;
     calculateResults();
     showSection('results');
@@ -366,22 +438,30 @@ function calculateResults() {
     const percentage = Math.round((correctAnswers / quizData.length) * 100);
     elements.scorePercentage.textContent = percentage + '%';
     
-    // Score interpretation
+    // Score interpretation based on admin settings
     let scoreText = '';
+    const passingScore = quizSettings.passingScore;
+    
     if (percentage >= 90) {
         scoreText = 'Отлично! Имате много добри познания за кибертормоза и дигиталната етика.';
-    } else if (percentage >= 70) {
-        scoreText = 'Много добре! Имате солидни знания, но има място за подобрение.';
-    } else if (percentage >= 50) {
-        scoreText = 'Добре! Имате основни знания, но препоръчваме да научите повече по темата.';
+    } else if (percentage >= passingScore) {
+        scoreText = `Много добре! Преминахте теста с резултат над минималния праг от ${passingScore}%.`;
+    } else if (percentage >= passingScore - 20) {
+        scoreText = `Добре! Близо сте до преминаване, но се нуждаете от резултат над ${passingScore}%.`;
     } else {
-        scoreText = 'Нуждаете се от повече информация за кибертормоза и дигиталната етика.';
+        scoreText = `За да преминете теста, се нуждаете от минимум ${passingScore}%. Препоръчваме да изучите повече материала.`;
     }
     
     elements.scoreText.textContent = `${correctAnswers} от ${quizData.length} правилни отговора. ${scoreText}`;
     
     // Display category breakdown
     displayCategoryBreakdown(categoryScores);
+    
+    // Show/hide review button based on settings
+    const reviewBtn = document.getElementById('review-answers');
+    if (reviewBtn) {
+        reviewBtn.style.display = quizSettings.showExplanations ? 'block' : 'none';
+    }
 }
 
 function displayCategoryBreakdown(categoryScores) {
@@ -440,7 +520,7 @@ function displayReview() {
                     return `<div class="review-answer ${answerClass}">${prefix}${option}</div>`;
                 }).join('')}
             </div>
-            <div class="answer-explanation">${question.explanation}</div>
+            ${quizSettings.showExplanations ? `<div class="answer-explanation">${question.explanation}</div>` : ''}
         `;
         
         elements.reviewContainer.appendChild(reviewDiv);
@@ -451,10 +531,81 @@ function showResults() {
     showSection('results');
 }
 
+function startTimer() {
+    // Update timer display initially
+    updateTimerDisplay();
+    
+    // Clear any existing timer
+    if (quizTimer) {
+        clearInterval(quizTimer);
+    }
+    
+    // Start countdown
+    quizTimer = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+        
+        // Check if time is up
+        if (timeRemaining <= 0) {
+            timeUp();
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    const displayTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    
+    const timerElement = document.getElementById('time-remaining');
+    if (timerElement) {
+        timerElement.textContent = displayTime;
+        
+        // Add warning classes based on time remaining
+        const timerContainer = document.getElementById('timer-display');
+        if (timerContainer) {
+            timerContainer.classList.remove('warning', 'danger');
+            
+            if (timeRemaining <= 60) { // Less than 1 minute
+                timerContainer.classList.add('danger');
+            } else if (timeRemaining <= 300) { // Less than 5 minutes
+                timerContainer.classList.add('warning');
+            }
+        }
+    }
+}
+
+function stopTimer() {
+    if (quizTimer) {
+        clearInterval(quizTimer);
+        quizTimer = null;
+    }
+}
+
+function timeUp() {
+    stopTimer();
+    
+    Swal.fire({
+        title: 'Времето изтече!',
+        text: 'Теста ще бъде автоматично предаден.',
+        icon: 'warning',
+        confirmButtonText: 'Разбрах',
+        confirmButtonColor: '#007acc',
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then(() => {
+        // Submit quiz automatically
+        quizCompleted = true;
+        calculateResults();
+        showSection('results');
+    });
+}
+
 function retryQuiz() {
     currentQuestion = 0;
     userAnswers = [];
     quizStarted = false;
     quizCompleted = false;
+    stopTimer();
     showSection('info');
 } 
