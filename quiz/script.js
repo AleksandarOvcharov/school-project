@@ -1,5 +1,5 @@
-// Quiz questions data (in Bulgarian)
-const quizData = [
+// Quiz questions data - will be loaded from database
+let quizData = [
     {
         question: "Какво е кибертормоз?",
         options: [
@@ -166,11 +166,60 @@ const elements = {
     reviewContainer: document.getElementById('review-container')
 };
 
+// Supabase client
+let supabase;
+
 // Initialize quiz
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Initialize Supabase
+    await initializeSupabase();
+    
+    // Load questions from database
+    await loadQuizQuestions();
+    
     setupEventListeners();
     elements.totalQuestions.textContent = quizData.length;
 });
+
+async function initializeSupabase() {
+    try {
+        // Use same credentials as admin panel
+        const SUPABASE_URL = 'https://rwlvgzbezcjdmwqidsvu.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3bHZnemJlemNqZG13cWlkc3Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjUzNDIsImV4cCI6MjA2NTI0MTM0Mn0.wtr2Q4ueBH-rhZ6pHpdQm9qdOG5m8dhAczIKHvvHqqw';
+        
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (error) {
+        // Supabase not available, use fallback data
+    }
+}
+
+async function loadQuizQuestions() {
+    try {
+        if (!supabase) {
+            return; // Use fallback data already in quizData
+        }
+        
+        const { data, error } = await supabase
+            .from('quiz_questions')
+            .select('*')
+            .order('created_at', { ascending: true });
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            // Transform database format to quiz format
+            quizData = data.map(item => ({
+                question: item.question,
+                options: item.options,
+                correct: item.correct,
+                category: item.category,
+                explanation: item.explanation
+            }));
+        }
+    } catch (error) {
+        // Use fallback data if database fails
+    }
+}
 
 function setupEventListeners() {
     elements.startBtn.addEventListener('click', startQuiz);

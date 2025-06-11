@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ вход - Кибертормоз и Дигитална Етика</title>
+    <link rel="icon" type="image/png" href="../public/favicon.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <div id="header-component"></div>
+
+    <main>
+        <!-- Login Section -->
+        <section id="login-section">
+            <div class="login-container"> 
+                <div class="login-card">
+                    <h2>Админ панел</h2>
+                    <p>Вход за управление на уебсайта</p>
+                    
+                    <form id="admin-login-form" class="login-form">
+                        <div class="form-group">
+                            <label for="username">Потребителско име:</label>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Парола:</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        
+                        <button type="submit" class="login-btn">Влез</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard Section -->
+        <section id="admin-dashboard" style="display: none;">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <h2>Управление на тестове</h2>
+                    <button id="logout-btn" class="logout-btn">Изход</button>
+                </div>
+
+                <div class="dashboard-tabs">
+                    <button class="tab-btn active" data-tab="questions">Въпроси</button>
+                    <button class="tab-btn" data-tab="add-question">Добави въпрос</button>
+                </div>
+
+                <!-- Questions Management Tab -->
+                <div id="questions-tab" class="tab-content active">
+                    <div class="questions-header">
+                        <h3>Съществуващи въпроси</h3>
+                        <div class="questions-stats">
+                            <span>Общо въпроси: <strong id="total-questions">0</strong></span>
+                        </div>
+                    </div>
+                    
+                    <div class="questions-list" id="questions-list">
+                        <!-- Questions will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Add Question Tab -->
+                <div id="add-question-tab" class="tab-content">
+                    <h3>Добави нов въпрос</h3>
+                    
+                    <form id="question-form" class="question-form">
+                        <div class="form-group">
+                            <label for="question-text">Въпрос:</label>
+                            <textarea id="question-text" name="question" required rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Отговори:</label>
+                            <div class="answers-container">
+                                <div class="answer-input">
+                                    <input type="text" name="option-0" placeholder="Отговор 1" required>
+                                    <input type="radio" name="correct" value="0" required>
+                                    <label>Правилен</label>
+                                </div>
+                                <div class="answer-input">
+                                    <input type="text" name="option-1" placeholder="Отговор 2" required>
+                                    <input type="radio" name="correct" value="1" required>
+                                    <label>Правилен</label>
+                                </div>
+                                <div class="answer-input">
+                                    <input type="text" name="option-2" placeholder="Отговор 3" required>
+                                    <input type="radio" name="correct" value="2" required>
+                                    <label>Правилен</label>
+                                </div>
+                                <div class="answer-input">
+                                    <input type="text" name="option-3" placeholder="Отговор 4" required>
+                                    <input type="radio" name="correct" value="3" required>
+                                    <label>Правилен</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="category">Категория:</label>
+                            <select id="category" name="category" required>
+                                <option value="">Изберете категория</option>
+                                <option value="definition">Определения и характеристики</option>
+                                <option value="types">Видове кибертормоз</option>
+                                <option value="protection">Превенция и защита</option>
+                                <option value="legal">Правни аспекти</option>
+                                <option value="ethics">Дигитална етика</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="explanation">Обяснение:</label>
+                            <textarea id="explanation" name="explanation" required rows="3" placeholder="Обяснение на правилния отговор..."></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="save-btn">Запази въпроса</button>
+                            <button type="button" id="cancel-edit" class="cancel-btn" style="display: none;">Отказ</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-component"></div>
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Environment loader -->
+    <script src="env-loader.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
