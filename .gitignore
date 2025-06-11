@@ -9,6 +9,8 @@
 config/database.js
 config/supabase.js
 
+admin/env-loader.js
+
 # Node.js
 node_modules/
 npm-debug.log*

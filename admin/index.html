@@ -7,6 +7,8 @@
     <link rel="icon" type="image/png" href="../public/favicon.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
@@ -42,87 +44,150 @@
         <section id="admin-dashboard" style="display: none;">
             <div class="dashboard-container">
                 <div class="dashboard-header">
-                    <h2>Управление на тестове</h2>
-                    <button id="logout-btn" class="logout-btn">Изход</button>
-                </div>
-
-                <div class="dashboard-tabs">
-                    <button class="tab-btn active" data-tab="questions">Въпроси</button>
-                    <button class="tab-btn" data-tab="add-question">Добави въпрос</button>
-                </div>
-
-                <!-- Questions Management Tab -->
-                <div id="questions-tab" class="tab-content active">
-                    <div class="questions-header">
-                        <h3>Съществуващи въпроси</h3>
-                        <div class="questions-stats">
-                            <span>Общо въпроси: <strong id="total-questions">0</strong></span>
-                        </div>
-                    </div>
-                    
-                    <div class="questions-list" id="questions-list">
-                        <!-- Questions will be loaded here -->
+                    <h2 id="page-title">Админ панел</h2>
+                    <div class="header-buttons">
+                        <button id="back-btn" class="back-btn" onclick="navigateToSection('main')" style="display: none;"><i class="fas fa-arrow-left"></i> Назад</button>
+                        <button id="logout-btn" class="logout-btn">Изход</button>
                     </div>
                 </div>
 
-                <!-- Add Question Tab -->
-                <div id="add-question-tab" class="tab-content">
-                    <h3>Добави нов въпрос</h3>
-                    
-                    <form id="question-form" class="question-form">
-                        <div class="form-group">
-                            <label for="question-text">Въпрос:</label>
-                            <textarea id="question-text" name="question" required rows="3"></textarea>
+                <!-- Main Dashboard with buttons -->
+                <div id="main-dashboard" class="main-dashboard">
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card" onclick="navigateToSection('tests')">
+                            <div class="card-icon"><i class="fas fa-clipboard-question"></i></div>
+                            <h3>Управление на тестове</h3>
+                            <p>Редактирай въпроси, добавяй нови и управлявай категориите</p>
                         </div>
+                        
+                        <div class="dashboard-card" onclick="navigateToSection('analytics')">
+                            <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                            <h3>Статистики</h3>
+                            <p>Виж резултатите от тестовете и анализи на данните</p>
+                        </div>
+                        
+                        <div class="dashboard-card" onclick="navigateToSection('users')">
+                            <div class="card-icon"><i class="fas fa-users"></i></div>
+                            <h3>Потребители</h3>
+                            <p>Управлявай потребителски акаунти и права на достъп</p>
+                        </div>
+                        
+                        <div class="dashboard-card" onclick="navigateToSection('settings')">
+                            <div class="card-icon"><i class="fas fa-cog"></i></div>
+                            <h3>Настройки</h3>
+                            <p>Конфигурирай системата и общи настройки</p>
+                        </div>
+                    </div>
+                </div>
 
-                        <div class="form-group">
-                            <label>Отговори:</label>
-                            <div class="answers-container">
-                                <div class="answer-input">
-                                    <input type="text" name="option-0" placeholder="Отговор 1" required>
-                                    <input type="radio" name="correct" value="0" required>
-                                    <label>Правилен</label>
-                                </div>
-                                <div class="answer-input">
-                                    <input type="text" name="option-1" placeholder="Отговор 2" required>
-                                    <input type="radio" name="correct" value="1" required>
-                                    <label>Правилен</label>
-                                </div>
-                                <div class="answer-input">
-                                    <input type="text" name="option-2" placeholder="Отговор 3" required>
-                                    <input type="radio" name="correct" value="2" required>
-                                    <label>Правилен</label>
-                                </div>
-                                <div class="answer-input">
+                <!-- Tests Management Section -->
+                <div id="tests-section" class="admin-section" style="display: none;">
+
+                    <div class="dashboard-tabs">
+                        <button class="tab-btn active" data-tab="questions">Въпроси</button>
+                        <button class="tab-btn" data-tab="add-question">Добави въпрос</button>
+                    </div>
+
+                    <!-- Questions Management Tab -->
+                    <div id="questions-tab" class="tab-content active">
+                        <div class="questions-header">
+                            <h3>Съществуващи въпроси</h3>
+                            <div class="questions-stats">
+                                <span>Общо въпроси: <strong id="total-questions">0</strong></span>
+                            </div>
+                        </div>
+                        
+                        <div class="questions-list" id="questions-list">
+                            <!-- Questions will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Add Question Tab -->
+                    <div id="add-question-tab" class="tab-content">
+                        <h3>Добави нов въпрос</h3>
+                        
+                        <form id="question-form" class="question-form">
+                            <div class="form-group">
+                                <label for="question-text">Въпрос:</label>
+                                <textarea id="question-text" name="question" required rows="3"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Отговори:</label>
+                                <div class="answers-container">
+                                    <div class="answer-input">
+                                        <input type="text" name="option-0" placeholder="Отговор 1" required>
+                                        <input type="radio" name="correct" value="0" required>
+                                        <label>Правилен</label>
+                                    </div>
+                                    <div class="answer-input">
+                                        <input type="text" name="option-1" placeholder="Отговор 2" required>
+                                        <input type="radio" name="correct" value="1" required>
+                                        <label>Правилен</label>
+                                    </div>
+                                    <div class="answer-input">
+                                        <input type="text" name="option-2" placeholder="Отговор 3" required>
+                                        <input type="radio" name="correct" value="2" required>
+                                        <label>Правилен</label>
+                                    </div>
+                                                                    <div class="answer-input">
                                     <input type="text" name="option-3" placeholder="Отговор 4" required>
                                     <input type="radio" name="correct" value="3" required>
                                     <label>Правилен</label>
                                 </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="category">Категория:</label>
-                            <select id="category" name="category" required>
-                                <option value="">Изберете категория</option>
-                                <option value="definition">Определения и характеристики</option>
-                                <option value="types">Видове кибертормоз</option>
-                                <option value="protection">Превенция и защита</option>
-                                <option value="legal">Правни аспекти</option>
-                                <option value="ethics">Дигитална етика</option>
-                            </select>
-                        </div>
+                            <div class="form-group">
+                                <label for="category">Категория:</label>
+                                <select id="category" name="category" required>
+                                    <option value="">Изберете категория</option>
+                                    <option value="definition">Определения и характеристики</option>
+                                    <option value="types">Видове кибертормоз</option>
+                                    <option value="protection">Превенция и защита</option>
+                                    <option value="legal">Правни аспекти</option>
+                                    <option value="ethics">Дигитална етика</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="explanation">Обяснение:</label>
-                            <textarea id="explanation" name="explanation" required rows="3" placeholder="Обяснение на правилния отговор..."></textarea>
-                        </div>
+                            <div class="form-group">
+                                <label for="explanation">Обяснение:</label>
+                                <textarea id="explanation" name="explanation" required rows="3" placeholder="Обяснение на правилния отговор..."></textarea>
+                            </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="save-btn">Запази въпроса</button>
-                            <button type="button" id="cancel-edit" class="cancel-btn" style="display: none;">Отказ</button>
-                        </div>
-                    </form>
+                            <div class="form-actions">
+                                <button type="submit" class="save-btn">Запази въпроса</button>
+                                <button type="button" id="cancel-edit" class="cancel-btn" style="display: none;">Отказ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div id="analytics-section" class="admin-section" style="display: none;">
+                    <div class="coming-soon">
+                        <div class="coming-soon-icon"><i class="fas fa-chart-bar"></i></div>
+                        <h4>Скоро ще бъде налично</h4>
+                        <p>Тази функция се разработва активно и ще бъде добавена в следващата версия.</p>
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div id="users-section" class="admin-section" style="display: none;">
+                    <div class="coming-soon">
+                        <div class="coming-soon-icon"><i class="fas fa-users"></i></div>
+                        <h4>Скоро ще бъде налично</h4>
+                        <p>Тази функция се разработва активно и ще бъде добавена в следващата версия.</p>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div id="settings-section" class="admin-section" style="display: none;">
+                    <div class="coming-soon">
+                        <div class="coming-soon-icon"><i class="fas fa-cog"></i></div>
+                        <h4>Скоро ще бъде налично</h4>
+                        <p>Тази функция се разработва активно и ще бъде добавена в следващата версия.</p>
+                    </div>
                 </div>
             </div>
         </section>

@@ -25,13 +25,14 @@ async function initializeWithEnv() {
             password: window.ENV.ADMIN_PASSWORD
         };
         
-
-        
         // Continue with initialization
         setupEventListeners();
         loadHeaderAndFooter();
         checkAuthStatus();
         initializeSupabase();
+        
+        // Setup URL routing
+        setupRouting();
         
     } catch (error) {
         Swal.fire({
@@ -46,6 +47,7 @@ async function initializeWithEnv() {
 // Global variables
 let currentEditingId = null;
 let questionsData = [];
+let currentSection = 'main';
 
 // Function to load header and footer components
 async function loadComponent(elementId, componentPath) {
@@ -122,6 +124,112 @@ function setupMobileMenu() {
     }
 }
 
+// URL Routing Setup
+function setupRouting() {
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleURLChange);
+    
+    // Handle initial URL
+    handleURLChange();
+}
+
+function handleURLChange() {
+    const hash = window.location.hash.slice(1); // Remove the # symbol
+    
+    // Extract section from hash (e.g., #tests -> tests)
+    if (hash && hash !== '') {
+        currentSection = hash;
+        showSection(hash);
+        updatePageTitle(hash);
+    } else {
+        currentSection = 'main';
+        showSection('main');
+        updatePageTitle('main');
+    }
+}
+
+function navigateToSection(section) {
+    currentSection = section;
+    
+    // Update URL without page reload using hash
+    const newHash = section === 'main' ? '' : `#${section}`;
+    window.location.hash = newHash;
+    
+    // Show the section (this will also be triggered by hashchange event)
+    showSection(section);
+    updatePageTitle(section);
+}
+
+function showSection(section) {
+    // Hide all sections
+    const sections = ['main-dashboard', 'tests-section', 'analytics-section', 'users-section', 'settings-section'];
+    sections.forEach(sectionId => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            element.style.display = 'none';
+        }
+    });
+    
+    // Show target section
+    const targetId = section === 'main' ? 'main-dashboard' : `${section}-section`;
+    const targetElement = document.getElementById(targetId);
+    if (targetElement) {
+        targetElement.style.display = 'block';
+    }
+    
+    // Show/hide back button
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) {
+        backBtn.style.display = section === 'main' ? 'none' : 'block';
+    }
+    
+    // Load questions if entering tests section
+    if (section === 'tests') {
+        // Add a small delay to show the section first, then load questions
+        setTimeout(() => {
+            loadQuestions();
+        }, 100);
+    }
+}
+
+function updatePageTitle(section) {
+    const titles = {
+        main: 'Админ панел',
+        tests: 'Управление на тестове',
+        analytics: 'Статистики',
+        users: 'Потребители',
+        settings: 'Настройки'
+    };
+    
+    const titleElement = document.getElementById('page-title');
+    if (titleElement) {
+        titleElement.textContent = titles[section] || 'Админ панел';
+    }
+}
+
+// Loading spinner functions
+function showLoadingSpinner(container, message = 'Зареждане...') {
+    container.innerHTML = `
+        <div class="loading-container">
+            <div class="spinner">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+            </div>
+            <div class="loading-text">${message}</div>
+        </div>
+    `;
+}
+
+function hideLoadingSpinner(container) {
+    const spinner = container.querySelector('.loading-container');
+    if (spinner) {
+        spinner.remove();
+    }
+}
+
+// Make navigation function globally available
+window.navigateToSection = navigateToSection;
+
 // Category mapping
 const categories = {
     definition: "Определения и характеристики",
@@ -154,13 +262,9 @@ const elements = {
     cancelEditBtn: document.getElementById('cancel-edit')
 };
 
-// Initialization is now handled in initializeWithConfig()
-
 function setupEventListeners() {
     // Login form
     elements.loginForm.addEventListener('submit', handleLogin);
-    
-
     
     // Logout button
     elements.logoutBtn.addEventListener('click', handleLogout);
@@ -173,6 +277,47 @@ function setupEventListeners() {
     // Question form
     elements.questionForm.addEventListener('submit', handleQuestionSubmit);
     elements.cancelEditBtn.addEventListener('click', cancelEdit);
+    
+    // Make answer cards clickable
+    setupAnswerCardClicks();
+}
+
+function setupAnswerCardClicks() {
+    // Add event delegation for answer cards
+    document.addEventListener('click', function(e) {
+        const answerCard = e.target.closest('.answer-input');
+        if (answerCard) {
+            const radioButton = answerCard.querySelector('input[type="radio"]');
+            // Don't activate if clicking on text input or radio button itself
+            if (radioButton && 
+                e.target !== radioButton && 
+                e.target.type !== 'text' && 
+                !e.target.matches('input[type="text"]')) {
+                radioButton.checked = true;
+                updateCardSelection();
+            }
+        }
+    });
+    
+    // Also listen for direct radio button changes
+    document.addEventListener('change', function(e) {
+        if (e.target.type === 'radio' && e.target.closest('.answer-input')) {
+            updateCardSelection();
+        }
+    });
+}
+
+function updateCardSelection() {
+    // Update visual state of all answer cards
+    const answerCards = document.querySelectorAll('.answer-input');
+    answerCards.forEach(card => {
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio && radio.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
 }
 
 // Authentication functions
@@ -190,6 +335,7 @@ async function handleLogin(e) {
     
     const usernameField = document.getElementById('username');
     const passwordField = document.getElementById('password');
+    const loginBtn = document.querySelector('.login-btn');
     
     if (!usernameField || !passwordField) {
         return;
@@ -220,6 +366,22 @@ async function handleLogin(e) {
         return;
     }
     
+    // Show loading state
+    const originalText = loginBtn.textContent;
+    loginBtn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+            <div class="spinner" style="width: 20px; height: 20px; margin: 0;">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+            </div>
+            Влизане...
+        </div>
+    `;
+    loginBtn.disabled = true;
+    
+    // Simulate loading delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
         localStorage.setItem('admin_logged_in', 'true');
         
@@ -234,6 +396,10 @@ async function handleLogin(e) {
             showDashboard();
         });
     } else {
+        // Reset button state
+        loginBtn.textContent = originalText;
+        loginBtn.disabled = false;
+        
         Swal.fire({
             title: 'Грешка!',
             text: 'Неправилно потребителско име или парола.',
@@ -258,6 +424,10 @@ function handleLogout() {
             localStorage.removeItem('admin_logged_in');
             showLogin();
             
+            // Reset URL hash
+            window.location.hash = '';
+            currentSection = 'main';
+            
             Swal.fire({
                 title: 'Изход',
                 text: 'Успешно излязохте от системата.',
@@ -278,7 +448,9 @@ function showLogin() {
 function showDashboard() {
     elements.loginSection.style.display = 'none';
     elements.adminDashboard.style.display = 'block';
-    loadQuestions();
+    
+    // Show appropriate section based on current URL
+    handleURLChange();
 }
 
 // Tab management
@@ -480,7 +652,7 @@ async function seedInitialQuestions() {
 // Questions management
 async function loadQuestions() {
     try {
-        elements.questionsList.innerHTML = '<div class="loading">Зареждане на въпросите...</div>';
+        showLoadingSpinner(elements.questionsList, 'Зареждане на въпросите...');
         
         const { data, error } = await supabase
             .from('quiz_questions')
@@ -557,6 +729,21 @@ async function handleQuestionSubmit(e) {
         explanation: formData.get('explanation')
     };
     
+    const saveBtn = document.querySelector('.save-btn');
+    const originalText = saveBtn.textContent;
+    
+    // Show loading state
+    saveBtn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+            <div class="spinner" style="width: 20px; height: 20px; margin: 0;">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+            </div>
+            Запазване...
+        </div>
+    `;
+    saveBtn.disabled = true;
+    
     try {
         if (currentEditingId) {
             await updateQuestion(currentEditingId, questionData);
@@ -577,6 +764,10 @@ async function handleQuestionSubmit(e) {
             icon: 'error',
             confirmButtonColor: '#007acc'
         });
+    } finally {
+        // Reset button state
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
     }
 }
 
