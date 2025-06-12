@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Симулационна игра - Кибертормоз и Дигитална Етика</title>
+    <link rel="icon" type="image/png" href="../public/favicon.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="../script.js" defer></script>
+    <script src="game.js" defer></script>
+</head>
+<body>
+    <div id="header-component"></div>
+
+    <main>
+        <section class="hero">
+            <h2>Симулационна игра за кибертормоз</h2>
+            <p>Тествайте знанията си и реакциите си в интерактивна симулация на кибертормоз. Вие сте в чат с непознат човек, който започва да проявява агресивно поведение. Направете правилните избори!</p>
+        </section>
+
+        <section id="game-container">
+            <div class="game-header">
+                <h3>Чат симулация (бета)</h3>
+                <div class="game-status">
+                    <div class="score">Точки: <span id="score">0</span></div>
+                    <div class="scenario">Сценарий: <span id="scenario-number">1</span></div>
+                </div>
+            </div>
+
+            <div class="chat-container" id="chat-container">
+                <div class="chat-messages" id="chat-messages"></div>
+            </div>
+
+            <div class="character-avatars">
+                <div class="avatar bully-avatar" id="bully-avatar">
+                    <div class="avatar-image">😠</div>
+                    <div class="avatar-name">Непознат</div>
+                    <div class="avatar-status" id="bully-status">пише...</div>
+                </div>
+                <div class="avatar player-avatar" id="player-avatar">
+                    <div class="avatar-image">😊</div>
+                    <div class="avatar-name">Вие</div>
+                    <div class="avatar-status" id="player-status">чака...</div>
+                </div>
+            </div>
+
+            <div class="game-controls" id="game-controls">
+                <div class="choices-container" id="choices-container" style="display: none;">
+                    <h4>Как ще отговорите?</h4>
+                    <div class="choices" id="choices"></div>
+                </div>
+                
+                <div class="game-buttons">
+                    <button id="start-game" class="btn">Започни игра</button>
+                    <button id="restart-game" class="btn" style="display: none;">Нова игра</button>
+                    <button id="show-tips" class="btn">Съвети</button>
+                </div>
+            </div>
+
+            <div class="game-tips" id="game-tips" style="display: none;">
+                <div class="highlight">
+                    <h4>Съвети за справяне с кибертормоз:</h4>
+                    <ul class="content-list">
+                        <li><strong>Не отговаряйте</strong> на провокативни съобщения</li>
+                        <li><strong>Запазете доказателства</strong> - направете снимки от екрана</li>
+                        <li><strong>Блокирайте агресора</strong> във всички социални мрежи</li>
+                        <li><strong>Разкажете на възрастен</strong> - родител, учител или друг</li>
+                        <li><strong>Не споделяйте лична информация</strong> с непознати</li>
+                        <li><strong>Сигналирайте</strong> за неподходящо поведение в платформата</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="game-result" id="game-result" style="display: none;">
+                <div class="result-content">
+                    <h3 id="result-title"></h3>
+                    <p id="result-description"></p>
+                    <div class="result-score">
+                        <strong>Финален резултат: <span id="final-score"></span> точки</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-component"></div>
+</body>
+</html> 
