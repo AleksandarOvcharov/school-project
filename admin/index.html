@@ -60,17 +60,7 @@
                             <p>Редактирай въпроси, добавяй нови и управлявай категориите</p>
                         </div>
                         
-                        <div class="dashboard-card" onclick="navigateToSection('analytics')">
-                            <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
-                            <h3>Статистики</h3>
-                            <p>Виж резултатите от тестовете и анализи на данните</p>
-                        </div>
-                        
-                        <div class="dashboard-card" onclick="navigateToSection('users')">
-                            <div class="card-icon"><i class="fas fa-users"></i></div>
-                            <h3>Потребители</h3>
-                            <p>Управлявай потребителски акаунти и права на достъп</p>
-                        </div>
+
                         
                         <div class="dashboard-card" onclick="navigateToSection('settings')">
                             <div class="card-icon"><i class="fas fa-cog"></i></div>
@@ -163,23 +153,9 @@
                     </div>
                 </div>
 
-                <!-- Analytics Section -->
-                <div id="analytics-section" class="admin-section" style="display: none;">
-                    <div class="coming-soon">
-                        <div class="coming-soon-icon"><i class="fas fa-chart-bar"></i></div>
-                        <h4>Скоро ще бъде налично</h4>
-                        <p>Тази функция се разработва активно и ще бъде добавена в следващата версия.</p>
-                    </div>
-                </div>
 
-                <!-- Users Section -->
-                <div id="users-section" class="admin-section" style="display: none;">
-                    <div class="coming-soon">
-                        <div class="coming-soon-icon"><i class="fas fa-users"></i></div>
-                        <h4>Скоро ще бъде налично</h4>
-                        <p>Тази функция се разработва активно и ще бъде добавена в следващата версия.</p>
-                    </div>
-                </div>
+
+
 
                 <!-- Settings Section -->
                 <div id="settings-section" class="admin-section" style="display: none;">
@@ -196,14 +172,7 @@
                                         <label for="site-title">Заглавие на сайта:</label>
                                         <input type="text" id="site-title" value="Кибертормоз и Дигитална Етика">
                                     </div>
-                                    <div class="setting-item">
-                                        <label for="site-description">Описание:</label>
-                                        <textarea id="site-description" rows="3">Образователна платформа за кибербезопасност и дигитална етика</textarea>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label for="contact-email">Контактен имейл:</label>
-                                        <input type="email" id="contact-email" placeholder="admin@example.com">
-                                    </div>
+
                                 </div>
                                 <div class="settings-card-footer">
                                     <button class="save-settings-btn" onclick="saveSettings('site')">Запази</button>
@@ -259,9 +228,14 @@
                                     <div class="setting-item">
                                         <label>Импорт на въпроси:</label>
                                         <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importQuestions(this)">
-                                        <button class="action-btn" onclick="document.getElementById('import-file').click()">
-                                            <i class="fas fa-upload"></i> Качи JSON
-                                        </button>
+                                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                            <button class="action-btn" onclick="document.getElementById('import-file').click()">
+                                                <i class="fas fa-upload"></i> Качи JSON
+                                            </button>
+                                            <button class="action-btn" onclick="showJsonFormat()" style="background: #28a745;">
+                                                <i class="fas fa-info-circle"></i> Формат
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="setting-item danger-zone">
                                         <label>Опасна зона:</label>
@@ -317,6 +291,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Environment loader -->
     <script src="env-loader.js"></script>
     <script src="script.js"></script>

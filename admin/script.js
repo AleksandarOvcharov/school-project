@@ -162,7 +162,7 @@ function navigateToSection(section) {
 
 function showSection(section) {
     // Hide all sections
-    const sections = ['main-dashboard', 'tests-section', 'analytics-section', 'users-section', 'settings-section'];
+    const sections = ['main-dashboard', 'tests-section', 'settings-section'];
     sections.forEach(sectionId => {
         const element = document.getElementById(sectionId);
         if (element) {
@@ -201,8 +201,6 @@ function updatePageTitle(section) {
     const titles = {
         main: 'Админ панел',
         tests: 'Управление на тестове',
-        analytics: 'Статистики',
-        users: 'Потребители',
         settings: 'Настройки'
     };
     
@@ -265,7 +263,7 @@ const elements = {
     categorySelect: document.getElementById('category'),
     explanationText: document.getElementById('explanation'),
     cancelEditBtn: document.getElementById('cancel-edit')
-};
+}; 
 
 function setupEventListeners() {
     // Login form
@@ -517,8 +515,115 @@ async function createQuestionsTable() {
             updated_at TIMESTAMP DEFAULT NOW()
         );
     `;
-    
+}
 
+function getCategoryName(category) {
+    return categories[category] || category;
+}
+
+// Make functions globally available
+window.editQuestion = editQuestion;
+window.deleteQuestion = deleteQuestion;
+window.saveSettings = saveSettings;
+window.exportQuestions = exportQuestions;
+window.importQuestions = importQuestions;
+window.clearAllData = clearAllData;
+window.changePassword = changePassword;
+window.showJsonFormat = showJsonFormat;
+window.copyJsonExample = copyJsonExample;
+
+function copyJsonExample() {
+    const exampleJson = [
+        {
+            "question": "Какво е кибертормоз?",
+            "options": [
+                "Физически тормоз в реалния свят",
+                "Тормоз чрез електронни средства и интернет",
+                "Споделяне на позитивно съдържание онлайн",
+                "Образователна дейност в интернет"
+            ],
+            "correct": 1,
+            "category": "definition",
+            "explanation": "Кибертормозът е форма на тормоз, която се извършва чрез електронни средства."
+        },
+        {
+            "question": "Кое от следните е добра мярка за защита?",
+            "options": [
+                "Споделяне на лични данни",
+                "Използване на силни пароли",
+                "Приемане на покани от непознати",
+                "Публикуване на адреса си"
+            ],
+            "correct": 1,
+            "category": "protection",
+            "explanation": "Силните пароли са основна мярка за защита в интернет."
+        }
+    ];
+
+    const jsonString = JSON.stringify(exampleJson, null, 2);
+    
+    // Try to copy to clipboard
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(jsonString).then(() => {
+            // Find the button and update it
+            const button = document.querySelector('.copy-json-btn');
+            if (button) {
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Копирано!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('copied');
+                }, 2000);
+            }
+        }).catch(() => {
+            // Fallback if clipboard API fails
+            fallbackCopyText(jsonString);
+        });
+    } else {
+        // Fallback for non-secure contexts
+        fallbackCopyText(jsonString);
+    }
+}
+
+function fallbackCopyText(text) {
+    // Create a temporary textarea element
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        // Show success message
+        const button = document.querySelector('.copy-json-btn');
+        if (button) {
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Копирано!';
+            button.classList.add('copied');
+            
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('copied');
+            }, 2000);
+        }
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        // Show error message
+        Swal.fire({
+            title: 'Грешка',
+            text: 'Не успя да копира текста. Моля, копирайте ръчно.',
+            icon: 'error',
+            confirmButtonColor: '#007acc'
+        });
+    } finally {
+        document.body.removeChild(textArea);
+    }
 }
 
 async function seedInitialQuestions() {
@@ -957,9 +1062,7 @@ function saveSettings(section) {
         
         if (section === 'site') {
             settings = {
-                siteTitle: document.getElementById('site-title').value,
-                siteDescription: document.getElementById('site-description').value,
-                contactEmail: document.getElementById('contact-email').value
+                siteTitle: document.getElementById('site-title').value
             };
             
             // Update titles immediately
@@ -1199,6 +1302,87 @@ function changePassword() {
     });
 }
 
+function showJsonFormat() {
+    const exampleJson = [
+        {
+            "question": "Какво е кибертормоз?",
+            "options": [
+                "Физически тормоз в реалния свят",
+                "Тормоз чрез електронни средства и интернет",
+                "Споделяне на позитивно съдържание онлайн",
+                "Образователна дейност в интернет"
+            ],
+            "correct": 1,
+            "category": "definition",
+            "explanation": "Кибертормозът е форма на тормоз, която се извършва чрез електронни средства."
+        },
+        {
+            "question": "Кое от следните е добра мярка за защита?",
+            "options": [
+                "Споделяне на лични данни",
+                "Използване на силни пароли",
+                "Приемане на покани от непознати",
+                "Публикуване на адреса си"
+            ],
+            "correct": 1,
+            "category": "protection",
+            "explanation": "Силните пароли са основна мярка за защита в интернет."
+        }
+    ];
+
+    // Function to highlight JSON syntax
+    function highlightJson(jsonString) {
+        return jsonString
+            .replace(/("([^"\\]|\\.)*")\s*:/g, '<span style="color: #d14; font-weight: bold;">$1</span>:')
+            .replace(/:\s*("([^"\\]|\\.)*")/g, ': <span style="color: #032f62;">$1</span>')
+            .replace(/:\s*(\d+)/g, ': <span style="color: #005cc5; font-weight: bold;">$1</span>')
+            .replace(/:\s*(true|false|null)/g, ': <span style="color: #e36209; font-weight: bold;">$1</span>')
+            .replace(/(\[|\]|\{|\})/g, '<span style="color: #6f42c1; font-weight: bold;">$1</span>')
+            .replace(/,/g, '<span style="color: #6a737d;">,</span>');
+    }
+
+    const highlightedJson = highlightJson(JSON.stringify(exampleJson, null, 4));
+
+    Swal.fire({
+        title: 'Формат на JSON файла',
+        html: `
+            <div style="text-align: left; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #007acc;">
+                    <h4 style="margin: 0 0 15px 0; color: #007acc;">📋 Структура на JSON файла</h4>
+                    <p style="margin: 10px 0; font-size: 15px;"><strong>JSON файлът трябва да съдържа масив от обекти със следните полета:</strong></p>
+                    <ul style="margin: 15px 0; padding-left: 25px; font-size: 14px; line-height: 1.6;">
+                        <li style="margin-bottom: 8px;"><code style="background: #e9ecef; padding: 3px 6px; border-radius: 3px; color: #e83e8c; font-weight: bold;">question</code> - текст на въпроса</li>
+                        <li style="margin-bottom: 8px;"><code style="background: #e9ecef; padding: 3px 6px; border-radius: 3px; color: #e83e8c; font-weight: bold;">options</code> - масив с 4 отговора</li>
+                        <li style="margin-bottom: 8px;"><code style="background: #e9ecef; padding: 3px 6px; border-radius: 3px; color: #e83e8c; font-weight: bold;">correct</code> - индекс на правилния отговор (0-3)</li>
+                        <li style="margin-bottom: 8px;"><code style="background: #e9ecef; padding: 3px 6px; border-radius: 3px; color: #e83e8c; font-weight: bold;">category</code> - категория: <em>definition, types, protection, legal, ethics</em></li>
+                        <li style="margin-bottom: 8px;"><code style="background: #e9ecef; padding: 3px 6px; border-radius: 3px; color: #e83e8c; font-weight: bold;">explanation</code> - обяснение на правилния отговор</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #ffffff; border: 1px solid #e1e5e9; border-radius: 8px; overflow: hidden;">
+                    <div style="background: #f1f3f4; padding: 12px 20px; border-bottom: 1px solid #e1e5e9; display: flex; align-items: center;">
+                        <span style="font-weight: bold; color: #5f6368; font-size: 14px;">📄 Примерен JSON формат</span>
+                        <button onclick="copyJsonExample()" class="copy-json-btn">
+                            <i class="fas fa-copy"></i> Копирай
+                        </button>
+                    </div>
+                    <pre style="background: #fafbfc; padding: 25px; margin: 0; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 14px; line-height: 1.6; text-align: left; overflow-x: auto; white-space: pre-wrap; color: #24292e;">${highlightedJson}</pre>
+                </div>
+                
+                <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #28a745;">
+                    <p style="margin: 0; font-size: 13px; color: #155724;"><strong>💡 Съвет:</strong> Можете да копирате примерния код и да го редактирате с вашите въпроси.</p>
+                </div>
+            </div>
+        `,
+        width: '90%',
+        confirmButtonText: 'Разбрах',
+        confirmButtonColor: '#007acc',
+        customClass: {
+            popup: 'json-format-modal'
+        }
+    });
+}
+
 function loadSettings() {
     // Load last login info
     const lastLogin = localStorage.getItem('admin_last_login');
@@ -1213,8 +1397,6 @@ function loadSettings() {
     
     // Apply site settings
     if (siteSettings.siteTitle) document.getElementById('site-title').value = siteSettings.siteTitle;
-    if (siteSettings.siteDescription) document.getElementById('site-description').value = siteSettings.siteDescription;
-    if (siteSettings.contactEmail) document.getElementById('contact-email').value = siteSettings.contactEmail;
     
     // Apply quiz settings
     if (quizSettings.timeLimit) document.getElementById('quiz-time-limit').value = quizSettings.timeLimit;
@@ -1303,13 +1485,4 @@ function updateMainSiteTitles(newTitle) {
     } catch (error) {
         // Silent error handling
     }
-}
-
-// Make functions globally available
-window.editQuestion = editQuestion;
-window.deleteQuestion = deleteQuestion;
-window.saveSettings = saveSettings;
-window.exportQuestions = exportQuestions;
-window.importQuestions = importQuestions;
-window.clearAllData = clearAllData;
-window.changePassword = changePassword; 
+} 
