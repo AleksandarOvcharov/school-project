@@ -1348,7 +1348,7 @@ function showJsonFormat() {
         html: `
             <div style="text-align: left; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #007acc;">
-                    <h4 style="margin: 0 0 15px 0; color: #007acc;">📋 Структура на JSON файла</h4>
+                    <h4 style="margin: 0 0 15px 0; color: #007acc;">Структура на JSON файла</h4>
                     <p style="margin: 10px 0; font-size: 15px;"><strong>JSON файлът трябва да съдържа масив от обекти със следните полета:</strong></p>
                     <ul style="margin: 15px 0; padding-left: 25px; font-size: 14px; line-height: 1.6;">
                         <li style="margin-bottom: 8px;"><code style="background: #e9ecef; padding: 3px 6px; border-radius: 3px; color: #e83e8c; font-weight: bold;">question</code> - текст на въпроса</li>
@@ -1361,7 +1361,7 @@ function showJsonFormat() {
                 
                 <div style="background: #ffffff; border: 1px solid #e1e5e9; border-radius: 8px; overflow: hidden;">
                     <div style="background: #f1f3f4; padding: 12px 20px; border-bottom: 1px solid #e1e5e9; display: flex; align-items: center;">
-                        <span style="font-weight: bold; color: #5f6368; font-size: 14px;">📄 Примерен JSON формат</span>
+                        <span style="font-weight: bold; color: #5f6368; font-size: 14px;">Примерен JSON формат</span>
                         <button onclick="copyJsonExample()" class="copy-json-btn">
                             <i class="fas fa-copy"></i> Копирай
                         </button>
@@ -1370,7 +1370,7 @@ function showJsonFormat() {
                 </div>
                 
                 <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #28a745;">
-                    <p style="margin: 0; font-size: 13px; color: #155724;"><strong>💡 Съвет:</strong> Можете да копирате примерния код и да го редактирате с вашите въпроси.</p>
+                    <p style="margin: 0; font-size: 13px; color: #155724;"><strong>Съвет:</strong> Можете да копирате примерния код и да го редактирате с вашите въпроси.</p>
                 </div>
             </div>
         `,
