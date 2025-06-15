@@ -291,7 +291,7 @@ function updateQuizInfoDisplay() {
     if (infoSection) {
         let randomizeInfo = '';
         if (quizSettings.randomizeQuestions) {
-            randomizeInfo = '<div class="info-item"><strong>⚠️ Въпросите са разбъркани</strong></div>';
+            randomizeInfo = '<div class="info-item"><strong>Въпросите са разбъркани</strong></div>';
         }
         
         const htmlContent = `
