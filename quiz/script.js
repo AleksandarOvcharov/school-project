@@ -1,3 +1,6 @@
+// Quiz script loaded
+console.log('🚀 Quiz script loaded successfully!');
+
 // Quiz questions data - will be loaded from database
 let quizData = [
     {
@@ -181,25 +184,33 @@ let supabase;
 
 // Initialize quiz
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Quiz initialization started...'); // Debug
+    
     // Initialize Supabase
     await initializeSupabase();
+    console.log('Supabase initialized'); // Debug
     
-    // Load admin settings
-    loadQuizSettings();
+    // Load admin settings first
+    await loadQuizSettings();
+    console.log('Settings loaded:', quizSettings); // Debug
     
     // Load questions from database
     await loadQuizQuestions();
+    console.log('Questions loaded, count:', quizData.length); // Debug
     
-    // Apply randomization if enabled
+    // Apply randomization if enabled (after questions are loaded)
     if (quizSettings.randomizeQuestions) {
         shuffleArray(quizData);
+        console.log('Questions shuffled'); // Debug
     }
     
     setupEventListeners();
     elements.totalQuestions.textContent = quizData.length;
     
-    // Update UI with settings
+    // Update UI with settings (after everything is loaded)
+    console.log('Updating quiz info display...'); // Debug
     updateQuizInfoDisplay();
+    console.log('Quiz initialization completed'); // Debug
 });
 
 async function initializeSupabase() {
@@ -214,18 +225,50 @@ async function initializeSupabase() {
     }
 }
 
-function loadQuizSettings() {
+async function loadQuizSettings() {
     try {
+        console.log('Loading quiz settings from Supabase...'); // Debug
+        
+        // Try to load from Supabase first
+        if (supabase) {
+            const { data, error } = await supabase
+                .from('quiz_settings')
+                .select('setting_value')
+                .eq('setting_key', 'quiz_settings')
+                .single();
+
+            if (!error && data && data.setting_value) {
+                const settings = data.setting_value;
+                console.log('Loaded settings from Supabase:', settings); // Debug
+                
+                if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
+                if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
+                if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
+                if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
+                
+                console.log('Final quiz settings from Supabase:', quizSettings); // Debug
+                return;
+            }
+        }
+        
+        // Fallback to localStorage
+        console.log('Falling back to localStorage...'); // Debug
         const savedSettings = localStorage.getItem('admin_settings_quiz');
+        console.log('Loading quiz settings from localStorage:', savedSettings); // Debug
+        
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
+            console.log('Parsed settings from localStorage:', settings); // Debug
             
             if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
             if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
             if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
             if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
         }
+        
+        console.log('Final quiz settings:', quizSettings); // Debug
     } catch (error) {
+        console.error('Error loading quiz settings:', error);
         // Use default settings if error
     }
 }
@@ -238,10 +281,20 @@ function shuffleArray(array) {
 }
 
 function updateQuizInfoDisplay() {
+    console.log('updateQuizInfoDisplay called'); // Debug
+    console.log('Current quizSettings:', quizSettings); // Debug
+    
     // Update info section with current settings
     const infoSection = document.querySelector('#quiz-info .quiz-details');
+    console.log('Found infoSection:', infoSection); // Debug
+    
     if (infoSection) {
-        infoSection.innerHTML = `
+        let randomizeInfo = '';
+        if (quizSettings.randomizeQuestions) {
+            randomizeInfo = '<div class="info-item"><strong>⚠️ Въпросите са разбъркани</strong></div>';
+        }
+        
+        const htmlContent = `
             <div class="info-item">
                 <strong>Брой въпроси:</strong> ${quizData.length}
             </div>
@@ -254,8 +307,51 @@ function updateQuizInfoDisplay() {
             <div class="info-item">
                 <strong>Обяснения:</strong> ${quizSettings.showExplanations ? 'Да' : 'Не'}
             </div>
-            ${quizSettings.randomizeQuestions ? '<div class="info-item"><strong>Въпросите са разбъркани</strong></div>' : ''}
+            ${randomizeInfo}
         `;
+        
+        console.log('Setting innerHTML to:', htmlContent); // Debug
+        infoSection.innerHTML = htmlContent;
+        console.log('innerHTML set successfully'); // Debug
+    } else {
+        console.error('Could not find .quiz-details element!'); // Debug
+        
+        // Try alternative selector
+        const altSection = document.querySelector('#quiz-info');
+        console.log('Alternative quiz-info element:', altSection); // Debug
+        
+        if (altSection) {
+            // Create the quiz-details div if it doesn't exist
+            let detailsDiv = altSection.querySelector('.quiz-details');
+            if (!detailsDiv) {
+                detailsDiv = document.createElement('div');
+                detailsDiv.className = 'quiz-details';
+                altSection.appendChild(detailsDiv);
+                console.log('Created quiz-details div'); // Debug
+            }
+            
+            let randomizeInfo = '';
+            if (quizSettings.randomizeQuestions) {
+                randomizeInfo = '<div class="info-item"><strong>⚠️ Въпросите са разбъркани</strong></div>';
+            }
+            
+            detailsDiv.innerHTML = `
+                <div class="info-item">
+                    <strong>Брой въпроси:</strong> ${quizData.length}
+                </div>
+                <div class="info-item">
+                    <strong>Време за решаване:</strong> ${quizSettings.timeLimit} минути
+                </div>
+                <div class="info-item">
+                    <strong>Минимален резултат:</strong> ${quizSettings.passingScore}%
+                </div>
+                <div class="info-item">
+                    <strong>Обяснения:</strong> ${quizSettings.showExplanations ? 'Да' : 'Не'}
+                </div>
+                ${randomizeInfo}
+            `;
+            console.log('Used alternative method to set content'); // Debug
+        }
     }
 }
 
@@ -608,4 +704,6 @@ function retryQuiz() {
     quizCompleted = false;
     stopTimer();
     showSection('info');
-} 
+}
+
+ 

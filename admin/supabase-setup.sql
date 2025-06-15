@@ -13,28 +13,49 @@ CREATE TABLE IF NOT EXISTS quiz_questions (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 2. Включване на Row Level Security (RLS)
+-- 2. Създаване на таблицата quiz_settings
+CREATE TABLE IF NOT EXISTS quiz_settings (
+    id SERIAL PRIMARY KEY,
+    setting_key VARCHAR(50) UNIQUE NOT NULL,
+    setting_value JSONB NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 3. Включване на Row Level Security (RLS)
 ALTER TABLE quiz_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quiz_settings ENABLE ROW LEVEL SECURITY;
 
--- 3. Създаване на политики за достъп
+-- 4. Създаване на политики за достъп
 
--- Политика за четене - всички могат да четат въпросите
+-- Политики за quiz_questions
 CREATE POLICY "Enable read access for all users" ON quiz_questions
     FOR SELECT USING (true);
 
--- Политика за вмъкване - всички могат да добавят въпроси
 CREATE POLICY "Enable insert for all users" ON quiz_questions
     FOR INSERT WITH CHECK (true);
 
--- Политика за обновяване - всички могат да редактират въпроси
 CREATE POLICY "Enable update for all users" ON quiz_questions
     FOR UPDATE USING (true);
 
--- Политика за изтриване - всички могат да изтриват въпроси
 CREATE POLICY "Enable delete for all users" ON quiz_questions
     FOR DELETE USING (true);
 
--- 4. Функция за автоматично обновяване на updated_at колоната
+-- Политики за quiz_settings
+CREATE POLICY "Enable read access for all users on settings" ON quiz_settings
+    FOR SELECT USING (true);
+
+CREATE POLICY "Enable insert for all users on settings" ON quiz_settings
+    FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Enable update for all users on settings" ON quiz_settings
+    FOR UPDATE USING (true);
+
+CREATE POLICY "Enable delete for all users on settings" ON quiz_settings
+    FOR DELETE USING (true);
+
+-- 5. Функция за автоматично обновяване на updated_at колоната
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -43,8 +64,20 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- 5. Тригер за автоматично обновяване на updated_at
+-- 6. Тригери за автоматично обновяване на updated_at
 CREATE TRIGGER update_quiz_questions_updated_at 
     BEFORE UPDATE ON quiz_questions 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_quiz_settings_updated_at 
+    BEFORE UPDATE ON quiz_settings 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- 7. Вмъкване на начални настройки
+INSERT INTO quiz_settings (setting_key, setting_value, description) VALUES
+('site_settings', '{"siteTitle": "Кибертормоз и Дигитална Етика"}', 'Настройки на сайта'),
+('quiz_settings', '{"timeLimit": 15, "passingScore": 70, "showExplanations": true, "randomizeQuestions": false}', 'Настройки на теста'),
+('security_settings', '{"sessionTimeout": true}', 'Настройки за сигурност')
+ON CONFLICT (setting_key) DO NOTHING;

@@ -175,7 +175,7 @@
 
                                 </div>
                                 <div class="settings-card-footer">
-                                    <button class="save-settings-btn" onclick="saveSettings('site')">Запази</button>
+                                    <button class="save-settings-btn" onclick="handleSaveSettings('site')">Запази</button>
                                 </div>
                             </div>
 
@@ -208,7 +208,7 @@
                                     </div>
                                 </div>
                                 <div class="settings-card-footer">
-                                    <button class="save-settings-btn" onclick="saveSettings('quiz')">Запази</button>
+                                    <button class="save-settings-btn" onclick="handleSaveSettings('quiz')">Запази</button>
                                 </div>
                             </div>
 
@@ -236,6 +236,12 @@
                                                 <i class="fas fa-info-circle"></i> Формат
                                             </button>
                                         </div>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label>Изчистване на дублирани въпроси:</label>
+                                        <button class="action-btn" onclick="removeDuplicateQuestions()" style="background: #17a2b8;">
+                                            <i class="fas fa-broom"></i> Премахни дублираните
+                                        </button>
                                     </div>
                                     <div class="setting-item danger-zone">
                                         <label>Опасна зона:</label>
@@ -275,7 +281,7 @@
                                     </div>
                                 </div>
                                 <div class="settings-card-footer">
-                                    <button class="save-settings-btn" onclick="saveSettings('security')">Запази</button>
+                                    <button class="save-settings-btn" onclick="handleSaveSettings('security')">Запази</button>
                                 </div>
                             </div>
                         </div>

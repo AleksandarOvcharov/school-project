@@ -191,8 +191,8 @@ function showSection(section) {
         }, 100);
     } else if (section === 'settings') {
         // Load settings when entering settings section
-        setTimeout(() => {
-            loadSettings();
+        setTimeout(async () => {
+            await loadSettings();
         }, 100);
     }
 }
@@ -486,6 +486,9 @@ async function initializeSupabase() {
         // Check if table exists, if not create it
         await createQuestionsTable();
         
+        // Initialize settings table with default values
+        await initializeSettings();
+        
         // Load initial questions from local data if table is empty
         const { data, error } = await supabase
             .from('quiz_questions')
@@ -525,12 +528,21 @@ function getCategoryName(category) {
 window.editQuestion = editQuestion;
 window.deleteQuestion = deleteQuestion;
 window.saveSettings = saveSettings;
+window.handleSaveSettings = handleSaveSettings;
 window.exportQuestions = exportQuestions;
 window.importQuestions = importQuestions;
 window.clearAllData = clearAllData;
+window.removeDuplicateQuestions = removeDuplicateQuestions;
 window.changePassword = changePassword;
 window.showJsonFormat = showJsonFormat;
 window.copyJsonExample = copyJsonExample;
+
+// Wrapper function for async saveSettings
+function handleSaveSettings(section) {
+    saveSettings(section, event).catch(error => {
+        console.error('Error in handleSaveSettings:', error);
+    });
+}
 
 function copyJsonExample() {
     const exampleJson = [
@@ -753,9 +765,19 @@ async function seedInitialQuestions() {
     
     try {
         for (const question of initialQuestions) {
-            await supabase
+            // Check if this question already exists
+            const { data: existingQuestion, error: searchError } = await supabase
                 .from('quiz_questions')
-                .insert([question]);
+                .select('id')
+                .eq('question', question.question)
+                .limit(1);
+
+            // Only insert if question doesn't exist
+            if (!existingQuestion || existingQuestion.length === 0) {
+                await supabase
+                    .from('quiz_questions')
+                    .insert([question]);
+            }
         }
 
     } catch (error) {
@@ -1041,8 +1063,8 @@ function cancelEdit() {
 }
 
 // Settings Functions
-function saveSettings(section) {
-    const saveBtn = event.target;
+async function saveSettings(section, event = null) {
+    const saveBtn = event ? event.target : document.querySelector(`[onclick*="'${section}'"]`);
     const originalText = saveBtn.textContent;
     
     // Show loading state
@@ -1057,7 +1079,7 @@ function saveSettings(section) {
     `;
     saveBtn.disabled = true;
     
-    setTimeout(() => {
+    try {
         let settings = {};
         
         if (section === 'site') {
@@ -1071,8 +1093,8 @@ function saveSettings(section) {
             }
         } else if (section === 'quiz') {
             settings = {
-                timeLimit: document.getElementById('quiz-time-limit').value,
-                passingScore: document.getElementById('passing-score').value,
+                timeLimit: parseInt(document.getElementById('quiz-time-limit').value),
+                passingScore: parseInt(document.getElementById('passing-score').value),
                 showExplanations: document.getElementById('show-explanations').checked,
                 randomizeQuestions: document.getElementById('randomize-questions').checked
             };
@@ -1082,7 +1104,28 @@ function saveSettings(section) {
             };
         }
         
-        // Save to localStorage
+        // Save to Supabase
+        await saveSettingsToSupabase(`${section}_settings`, settings);
+        
+        // Reset button
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+        
+        let successMessage = 'Настройките бяха запазени успешно.';
+        
+        Swal.fire({
+            title: 'Успех!',
+            text: successMessage,
+            icon: 'success',
+            confirmButtonColor: '#007acc',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        
+        // Fallback to localStorage
         localStorage.setItem(`admin_settings_${section}`, JSON.stringify(settings));
         
         // Reset button
@@ -1090,14 +1133,65 @@ function saveSettings(section) {
         saveBtn.disabled = false;
         
         Swal.fire({
-            title: 'Успех!',
-            text: 'Настройките бяха запазени успешно.',
-            icon: 'success',
+            title: 'Предупреждение!',
+            text: 'Настройките бяха запазени локално (няма връзка с базата данни).',
+            icon: 'warning',
             confirmButtonColor: '#007acc',
-            timer: 2000,
+            timer: 3000,
             showConfirmButton: false
         });
-    }, 1000);
+    }
+}
+
+async function saveSettingsToSupabase(settingKey, settingValue) {
+    try {
+        // Try to update existing setting
+        const { data: updateData, error: updateError } = await supabase
+            .from('quiz_settings')
+            .update({ 
+                setting_value: settingValue,
+                updated_at: new Date().toISOString()
+            })
+            .eq('setting_key', settingKey)
+            .select();
+
+        if (updateError) throw updateError;
+
+        // If no rows were updated, insert new setting
+        if (!updateData || updateData.length === 0) {
+            const { data: insertData, error: insertError } = await supabase
+                .from('quiz_settings')
+                .insert([{
+                    setting_key: settingKey,
+                    setting_value: settingValue,
+                    description: `Настройки за ${settingKey.replace('_settings', '')}`
+                }])
+                .select();
+
+            if (insertError) throw insertError;
+        }
+
+    } catch (error) {
+        console.error('Supabase settings error:', error);
+        throw error;
+    }
+}
+
+async function loadSettingsFromSupabase(settingKey) {
+    try {
+        const { data, error } = await supabase
+            .from('quiz_settings')
+            .select('setting_value')
+            .eq('setting_key', settingKey)
+            .single();
+
+        if (error) throw error;
+
+        return data ? data.setting_value : null;
+    } catch (error) {
+        console.error('Error loading settings from Supabase:', error);
+        return null;
+    }
 }
 
 function exportQuestions() {
@@ -1199,7 +1293,131 @@ function importQuestions(input) {
     input.value = ''; // Reset file input
 }
 
+async function removeDuplicateQuestions() {
+    const result = await Swal.fire({
+        title: 'Изчистване на дублирани въпроси',
+        text: 'Тази операция ще премахне всички дублирани въпроси от базата данни. Искате ли да продължите?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#007acc',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Да, изчисти дублираните',
+        cancelButtonText: 'Отказ'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            // Show loading
+            Swal.fire({
+                title: 'Изчистване...',
+                text: 'Моля изчакайте докато премахваме дублираните въпроси.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Get all questions from database
+            const { data: allQuestions, error } = await supabase
+                .from('quiz_questions')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (error) throw error;
+
+            if (!allQuestions || allQuestions.length === 0) {
+                Swal.fire({
+                    title: 'Няма въпроси',
+                    text: 'Не са намерени въпроси в базата данни.',
+                    icon: 'info',
+                    confirmButtonColor: '#007acc'
+                });
+                return;
+            }
+
+            // Find duplicates based on question text
+            const uniqueQuestions = [];
+            const duplicateIds = [];
+            const questionTexts = new Set();
+
+            for (const question of allQuestions) {
+                if (questionTexts.has(question.question)) {
+                    // This is a duplicate
+                    duplicateIds.push(question.id);
+                } else {
+                    // This is unique, keep it
+                    questionTexts.add(question.question);
+                    uniqueQuestions.push(question);
+                }
+            }
+
+            if (duplicateIds.length === 0) {
+                Swal.fire({
+                    title: 'Няма дублирани въпроси',
+                    text: 'Не са намерени дублирани въпроси в базата данни.',
+                    icon: 'info',
+                    confirmButtonColor: '#007acc'
+                });
+                return;
+            }
+
+            // Delete duplicates
+            for (const duplicateId of duplicateIds) {
+                await supabase
+                    .from('quiz_questions')
+                    .delete()
+                    .eq('id', duplicateId);
+            }
+
+            Swal.fire({
+                title: 'Успех!',
+                text: `Премахнати са ${duplicateIds.length} дублирани въпроса. Останаха ${uniqueQuestions.length} уникални въпроса.`,
+                icon: 'success',
+                confirmButtonColor: '#007acc'
+            });
+
+            // Reload questions if we're in the tests section
+            if (currentSection === 'tests') {
+                loadQuestions();
+            }
+
+        } catch (error) {
+            console.error('Error removing duplicates:', error);
+            Swal.fire({
+                title: 'Грешка!',
+                text: 'Възникна грешка при премахването на дублираните въпроси.',
+                icon: 'error',
+                confirmButtonColor: '#007acc'
+            });
+        }
+    }
+}
+
 function clearAllData() {
+    Swal.fire({
+        title: 'Избор за изчистване',
+        text: 'Какво искате да изчистите?',
+        icon: 'question',
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonColor: '#007acc',
+        denyButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Само дублираните въпроси',
+        denyButtonText: 'ВСИЧКИ данни',
+        cancelButtonText: 'Отказ'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Remove only duplicates
+            removeDuplicateQuestions();
+        } else if (result.isDenied) {
+            // Remove all data (original functionality)
+            clearAllDataConfirm();
+        }
+    });
+}
+
+function clearAllDataConfirm() {
     Swal.fire({
         title: 'ВНИМАНИЕ!',
         text: 'Това ще изтрие ВСИЧКИ въпроси и данни. Тази операция е необратима!',
@@ -1383,32 +1601,57 @@ function showJsonFormat() {
     });
 }
 
-function loadSettings() {
+async function loadSettings() {
     // Load last login info
     const lastLogin = localStorage.getItem('admin_last_login');
     if (lastLogin) {
         document.getElementById('last-login').textContent = new Date(lastLogin).toLocaleString('bg-BG');
     }
     
-    // Load saved settings
-    const siteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
-    const quizSettings = JSON.parse(localStorage.getItem('admin_settings_quiz') || '{}');
-    const securitySettings = JSON.parse(localStorage.getItem('admin_settings_security') || '{}');
-    
-    // Apply site settings
-    if (siteSettings.siteTitle) document.getElementById('site-title').value = siteSettings.siteTitle;
-    
-    // Apply quiz settings
-    if (quizSettings.timeLimit) document.getElementById('quiz-time-limit').value = quizSettings.timeLimit;
-    if (quizSettings.passingScore) document.getElementById('passing-score').value = quizSettings.passingScore;
-    if (quizSettings.hasOwnProperty('showExplanations')) document.getElementById('show-explanations').checked = quizSettings.showExplanations;
-    if (quizSettings.hasOwnProperty('randomizeQuestions')) document.getElementById('randomize-questions').checked = quizSettings.randomizeQuestions;
-    
-    // Apply security settings
-    if (securitySettings.hasOwnProperty('sessionTimeout')) document.getElementById('session-timeout').checked = securitySettings.sessionTimeout;
-    
-    // Apply current site title to page if exists
-    applySiteTitleSettings();
+    try {
+        // Load settings from Supabase
+        const siteSettings = await loadSettingsFromSupabase('site_settings') || {};
+        const quizSettings = await loadSettingsFromSupabase('quiz_settings') || {};
+        const securitySettings = await loadSettingsFromSupabase('security_settings') || {};
+        
+        // Apply site settings
+        if (siteSettings.siteTitle) document.getElementById('site-title').value = siteSettings.siteTitle;
+        
+        // Apply quiz settings
+        if (quizSettings.timeLimit) document.getElementById('quiz-time-limit').value = quizSettings.timeLimit;
+        if (quizSettings.passingScore) document.getElementById('passing-score').value = quizSettings.passingScore;
+        if (quizSettings.hasOwnProperty('showExplanations')) document.getElementById('show-explanations').checked = quizSettings.showExplanations;
+        if (quizSettings.hasOwnProperty('randomizeQuestions')) document.getElementById('randomize-questions').checked = quizSettings.randomizeQuestions;
+        
+        // Apply security settings
+        if (securitySettings.hasOwnProperty('sessionTimeout')) document.getElementById('session-timeout').checked = securitySettings.sessionTimeout;
+        
+        // Apply current site title to page if exists
+        applySiteTitleSettings();
+        
+    } catch (error) {
+        console.error('Error loading settings from Supabase, falling back to localStorage:', error);
+        
+        // Fallback to localStorage
+        const siteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
+        const quizSettings = JSON.parse(localStorage.getItem('admin_settings_quiz') || '{}');
+        const securitySettings = JSON.parse(localStorage.getItem('admin_settings_security') || '{}');
+        
+        // Apply site settings
+        if (siteSettings.siteTitle) document.getElementById('site-title').value = siteSettings.siteTitle;
+        
+        // Apply quiz settings
+        if (quizSettings.timeLimit) document.getElementById('quiz-time-limit').value = quizSettings.timeLimit;
+        if (quizSettings.passingScore) document.getElementById('passing-score').value = quizSettings.passingScore;
+        if (quizSettings.hasOwnProperty('showExplanations')) document.getElementById('show-explanations').checked = quizSettings.showExplanations;
+        if (quizSettings.hasOwnProperty('randomizeQuestions')) document.getElementById('randomize-questions').checked = quizSettings.randomizeQuestions;
+        
+        // Apply security settings
+        if (securitySettings.hasOwnProperty('sessionTimeout')) document.getElementById('session-timeout').checked = securitySettings.sessionTimeout;
+        
+        // Apply current site title to page if exists
+        applySiteTitleSettings();
+    }
 }
 
 function applySiteTitleSettings() {
@@ -1484,5 +1727,63 @@ function updateMainSiteTitles(newTitle) {
         
     } catch (error) {
         // Silent error handling
+    }
+}
+
+async function initializeSettings() {
+    try {
+        // Check if settings exist
+        const { data: existingSettings, error: checkError } = await supabase
+            .from('quiz_settings')
+            .select('setting_key')
+            .limit(1);
+
+        if (checkError) {
+            console.log('Settings table might not exist, skipping initialization');
+            return;
+        }
+
+        // Default settings
+        const defaultSettings = [
+            {
+                setting_key: 'site_settings',
+                setting_value: { siteTitle: 'Кибертормоз и Дигитална Етика' },
+                description: 'Настройки на сайта'
+            },
+            {
+                setting_key: 'quiz_settings',
+                setting_value: { 
+                    timeLimit: 15, 
+                    passingScore: 70, 
+                    showExplanations: true, 
+                    randomizeQuestions: false 
+                },
+                description: 'Настройки на теста'
+            },
+            {
+                setting_key: 'security_settings',
+                setting_value: { sessionTimeout: true },
+                description: 'Настройки за сигурност'
+            }
+        ];
+
+        // Insert default settings if they don't exist
+        for (const setting of defaultSettings) {
+            const { data: existing } = await supabase
+                .from('quiz_settings')
+                .select('id')
+                .eq('setting_key', setting.setting_key)
+                .single();
+
+            if (!existing) {
+                await supabase
+                    .from('quiz_settings')
+                    .insert([setting]);
+                console.log(`Initialized ${setting.setting_key}`);
+            }
+        }
+
+    } catch (error) {
+        console.error('Error initializing settings:', error);
     }
 } 
