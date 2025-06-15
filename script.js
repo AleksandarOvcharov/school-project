@@ -42,10 +42,55 @@ function setActiveNav() {
     });
 }
 
-// Function to apply saved site title
-function applySavedSiteTitle() {
+// Supabase client
+let supabase;
+
+// Initialize Supabase
+async function initializeSupabase() {
     try {
-        const savedTitle = localStorage.getItem('main_site_title');
+        const { createClient } = window.supabase;
+        supabase = createClient(
+            'https://rwlvgzbezcjdmwqidsvu.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3bHZnemJlemNqZG13cWlkc3Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjUzNDIsImV4cCI6MjA2NTI0MTM0Mn0.wtr2Q4ueBH-rhZ6pHpdQm9qdOG5m8dhAczIKHvvHqqw'
+        );
+        return true;
+    } catch (error) {
+        console.error('Supabase initialization failed:', error);
+        return false;
+    }
+}
+
+// Function to load site title from Supabase
+async function loadSiteTitleFromSupabase() {
+    try {
+        if (!supabase) return null;
+        
+        const { data, error } = await supabase
+            .from('quiz_settings')
+            .select('setting_value')
+            .eq('setting_key', 'site_settings')
+            .single();
+
+        if (!error && data && data.setting_value && data.setting_value.siteTitle) {
+            return data.setting_value.siteTitle;
+        }
+    } catch (error) {
+        console.error('Error loading site title from Supabase:', error);
+    }
+    return null;
+}
+
+// Function to apply saved site title
+async function applySavedSiteTitle() {
+    try {
+        // Try to load from Supabase first
+        let savedTitle = await loadSiteTitleFromSupabase();
+        
+        // Fallback to localStorage
+        if (!savedTitle) {
+            savedTitle = localStorage.getItem('main_site_title');
+        }
+        
         if (savedTitle) {
             // Update page title
             document.title = savedTitle;
@@ -59,7 +104,17 @@ function applySavedSiteTitle() {
             }, 100);
         }
     } catch (error) {
-        // Silent error handling
+        // Silent error handling - fallback to localStorage
+        const savedTitle = localStorage.getItem('main_site_title');
+        if (savedTitle) {
+            document.title = savedTitle;
+            setTimeout(() => {
+                const headerTitle = document.querySelector('h1 a');
+                if (headerTitle) {
+                    headerTitle.textContent = savedTitle;
+                }
+            }, 100);
+        }
     }
 }
 
@@ -71,11 +126,14 @@ window.addEventListener('storage', function(e) {
 });
 
 // Load components when page loads
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    // Initialize Supabase first
+    await initializeSupabase();
+    
     const basePath = '/components/';
-    loadComponent('header-component', basePath + 'header.html').then(() => {
+    loadComponent('header-component', basePath + 'header.html').then(async () => {
         // Apply saved title after header is loaded
-        applySavedSiteTitle();
+        await applySavedSiteTitle();
     });
     loadComponent('footer-component', basePath + 'footer.html');    
 
