@@ -33,6 +33,38 @@
    border-radius: 8px;
    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
    border-top: 3px solid #007acc;
+   transition: all 0.3s ease;
+}
+
+.sitemap-page:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* Special styling for educational tools */
+.sitemap-category h3 i.fa-graduation-cap {
+   color: #000000;
+}
+
+.sitemap-category:has(h3 i.fa-graduation-cap) .sitemap-page {
+   border-top-color: #007acc;
+}
+
+.sitemap-category:has(h3 i.fa-graduation-cap) h3 {
+   color: #007acc;
+}
+
+/* Special styling for admin tools */
+.sitemap-category h3 i.fa-tools {
+   color: #000000;
+}
+
+.sitemap-category:has(h3 i.fa-tools) .sitemap-page {
+   border-top-color: #007acc;
+}
+
+.sitemap-category:has(h3 i.fa-tools) h3 {
+   color: #007acc;
 }
 
 .sitemap-page h4 {
