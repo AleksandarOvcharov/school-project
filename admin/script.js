@@ -221,7 +221,7 @@ function navigateToSection(section) {
 
 function showSection(section) {
     // Hide all sections
-    const sections = ['main-dashboard', 'tests-section', 'settings-section'];
+    const sections = ['main-dashboard', 'tests-section', 'json-writer-section', 'settings-section'];
     sections.forEach(sectionId => {
         const element = document.getElementById(sectionId);
         if (element) {
@@ -253,6 +253,17 @@ function showSection(section) {
         setTimeout(async () => {
             await loadSettings();
         }, 100);
+    } else if (section === 'json-writer') {
+        // Initialize JSON writer
+        setTimeout(() => {
+            const jsonEditor = document.getElementById('json-editor');
+            if (jsonEditor && !jsonEditor.hasAttribute('data-initialized')) {
+                jsonEditor.addEventListener('input', validateJson);
+                jsonEditor.setAttribute('data-initialized', 'true');
+                addJsonSyntaxHighlighting(jsonEditor);
+                validateJson(); // Initial validation
+            }
+        }, 100);
     }
 }
 
@@ -260,6 +271,7 @@ function updatePageTitle(section) {
     const titles = {
         main: 'Админ панел',
         tests: 'Управление на тестове',
+        'json-writer': 'JSON Writer',
         settings: 'Настройки'
     };
     
@@ -1858,4 +1870,312 @@ async function initializeSettings() {
     } catch (error) {
         console.error('Error initializing settings:', error);
     }
-} 
+}
+
+// JSON Writer Functions
+let jsonEditorData = [];
+
+function loadJsonTemplate() {
+    const template = [
+        {
+            "question": "Какво е кибертормоз?",
+            "options": [
+                "Използване на технологии за тормозене",
+                "Хакерска атака",
+                "Компютърен вирус",
+                "Програмен език"
+            ],
+            "correct": 0,
+            "category": "definition",
+            "explanation": "Кибертормозът е използването на дигитални технологии за тормозене, заплашване или унижение на други хора."
+        },
+        {
+            "question": "Кой от следните е пример за кибертормоз?",
+            "options": [
+                "Изпращане на насърчителни съобщения",
+                "Споделяне на снимки без разрешение",
+                "Играене на онлайн игри",
+                "Четене на новини"
+            ],
+            "correct": 1,
+            "category": "types",
+            "explanation": "Споделянето на лични снимки без разрешение е форма на кибертормоз."
+        }
+    ];
+    
+    const editor = document.getElementById('json-editor');
+    editor.value = JSON.stringify(template, null, 2);
+    
+    // Add basic syntax coloring to the template
+    addJsonSyntaxHighlighting(editor);
+    validateJson();
+}
+
+// Basic JSON syntax highlighting function
+function addJsonSyntaxHighlighting(editor) {
+    // Add placeholder styling
+    editor.placeholder = "Въведете JSON с въпроси тук...\n\nПример:\n[\n  {\n    \"question\": \"Въпрос?\",\n    \"options\": [\"А\", \"Б\", \"В\", \"Г\"],\n    \"correct\": 0,\n    \"category\": \"definition\",\n    \"explanation\": \"Обяснение\"\n  }\n]";
+}
+
+function validateJson() {
+    const editor = document.getElementById('json-editor');
+    const statusElement = document.getElementById('json-status');
+    const countElement = document.getElementById('json-count');
+    const saveBtn = document.querySelector('.save-json-btn');
+    
+    try {
+        const jsonText = editor.value.trim();
+        
+        if (!jsonText) {
+            statusElement.textContent = 'Въведете JSON данни';
+            statusElement.className = 'status-info';
+            countElement.textContent = '0 въпроса';
+            saveBtn.disabled = true;
+            updateJsonPreview([]);
+            return;
+        }
+        
+        const data = JSON.parse(jsonText);
+        
+        if (!Array.isArray(data)) {
+            throw new Error('JSON трябва да е масив от въпроси');
+        }
+        
+        // Validate question structure
+        const validQuestions = [];
+        for (let i = 0; i < data.length; i++) {
+            const q = data[i];
+            if (!q.question || !q.options || !Array.isArray(q.options) || 
+                !q.hasOwnProperty('correct') || !q.category || !q.explanation) {
+                throw new Error(`Въпрос ${i + 1}: Невалидна структура`);
+            }
+            
+            if (q.options.length < 2) {
+                throw new Error(`Въпрос ${i + 1}: Трябват поне 2 опции`);
+            }
+            
+            if (q.correct < 0 || q.correct >= q.options.length) {
+                throw new Error(`Въпрос ${i + 1}: Невалиден правилен отговор`);
+            }
+            
+            const validCategories = ['definition', 'types', 'protection', 'legal', 'ethics'];
+            if (!validCategories.includes(q.category)) {
+                throw new Error(`Въпрос ${i + 1}: Невалидна категория (${q.category})`);
+            }
+            
+            validQuestions.push(q);
+        }
+        
+        jsonEditorData = validQuestions;
+        statusElement.textContent = 'JSON е валиден';
+        statusElement.className = 'status-info valid';
+        countElement.textContent = `${validQuestions.length} въпроса`;
+        saveBtn.disabled = false;
+        
+        updateJsonPreview(validQuestions);
+        
+    } catch (error) {
+        statusElement.textContent = `Грешка: ${error.message}`;
+        statusElement.className = 'status-info invalid';
+        countElement.textContent = '0 въпроса';
+        saveBtn.disabled = true;
+        updateJsonPreview([]);
+    }
+}
+
+function updateJsonPreview(questions) {
+    const previewElement = document.getElementById('json-preview');
+    
+    if (questions.length === 0) {
+        previewElement.innerHTML = '<p class="preview-placeholder">Въведете валиден JSON за да видите превюто</p>';
+        return;
+    }
+    
+    const categoryNames = {
+        definition: "Определения и характеристики",
+        types: "Видове кибертормоз",
+        protection: "Превенция и защита",
+        legal: "Правни аспекти",
+        ethics: "Дигитална етика"
+    };
+    
+    let html = '';
+    questions.forEach((q, index) => {
+        html += `
+            <div class="preview-question">
+                <div class="preview-category">${categoryNames[q.category] || q.category}</div>
+                <h5>${index + 1}. ${q.question}</h5>
+                <ul class="preview-options">
+                    ${q.options.map((option, optIndex) => 
+                        `<li class="${optIndex === q.correct ? 'correct' : ''}">${String.fromCharCode(65 + optIndex)}. ${option}</li>`
+                    ).join('')}
+                </ul>
+                <div class="preview-explanation">
+                    <strong>Обяснение:</strong> ${q.explanation}
+                </div>
+            </div>
+        `;
+    });
+    
+    previewElement.innerHTML = html;
+}
+
+function clearJsonEditor() {
+    document.getElementById('json-editor').value = '';
+    validateJson();
+}
+
+async function saveJsonQuestions() {
+    if (jsonEditorData.length === 0) {
+        Swal.fire({
+            title: 'Грешка!',
+            text: 'Няма валидни въпроси за запазване.',
+            icon: 'error',
+            confirmButtonColor: '#007acc'
+        });
+        return;
+    }
+    
+    const result = await Swal.fire({
+        title: 'Потвърдете запазването',
+        text: `Искате ли да запазите ${jsonEditorData.length} въпроса в базата данни?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Да, запази',
+        cancelButtonText: 'Отказ'
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    const saveBtn = document.querySelector('.save-json-btn');
+    const originalText = saveBtn.innerHTML;
+    
+    saveBtn.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="spinner" style="width: 16px; height: 16px; margin: 0;">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+            </div>
+            Запазване...
+        </div>
+    `;
+    saveBtn.disabled = true;
+    
+    try {
+        let savedCount = 0;
+        let errorCount = 0;
+        
+        for (const question of jsonEditorData) {
+            try {
+                if (supabase) {
+                    await supabase
+                        .from('quiz_questions')
+                        .insert([question]);
+                } else {
+                    // Fallback to localStorage
+                    const existingQuestions = JSON.parse(localStorage.getItem('quiz_questions') || '[]');
+                    existingQuestions.push(question);
+                    localStorage.setItem('quiz_questions', JSON.stringify(existingQuestions));
+                }
+                savedCount++;
+            } catch (error) {
+                console.error('Error saving question:', error);
+                errorCount++;
+            }
+        }
+        
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        
+        if (errorCount === 0) {
+            Swal.fire({
+                title: 'Успех!',
+                text: `Всички ${savedCount} въпроса бяха запазени успешно.`,
+                icon: 'success',
+                confirmButtonColor: '#28a745'
+            });
+            
+            // Clear editor
+            clearJsonEditor();
+            
+            // Reload questions in tests section if it's loaded
+            if (currentSection === 'tests') {
+                setTimeout(() => {
+                    loadQuestions();
+                }, 1000);
+            }
+        } else {
+            Swal.fire({
+                title: 'Частичен успех',
+                text: `${savedCount} въпроса запазени, ${errorCount} грешки.`,
+                icon: 'warning',
+                confirmButtonColor: '#ffc107'
+            });
+        }
+        
+    } catch (error) {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        
+        Swal.fire({
+            title: 'Грешка!',
+            text: 'Възникна грешка при запазването на въпросите.',
+            icon: 'error',
+            confirmButtonColor: '#dc3545'
+        });
+    }
+}
+
+function showJsonExamples() {
+    Swal.fire({
+        title: 'JSON Примери',
+        html: `
+            <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                <h4>Структура на въпрос:</h4>
+                <pre style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-size: 12px; text-align: left; overflow-x: auto;">
+{
+  "question": "Текст на въпроса",
+  "options": [
+    "Опция 1",
+    "Опция 2", 
+    "Опция 3",
+    "Опция 4"
+  ],
+  "correct": 0,
+  "category": "definition",
+  "explanation": "Обяснение на правилния отговор"
+}</pre>
+                
+                <h4>Валидни категории:</h4>
+                <ul style="margin: 10px 0; text-align: left;">
+                    <li><code>definition</code> - Определения и характеристики</li>
+                    <li><code>types</code> - Видове кибертормоз</li>
+                    <li><code>protection</code> - Превенция и защита</li>
+                    <li><code>legal</code> - Правни аспекти</li>
+                    <li><code>ethics</code> - Дигитална етика</li>
+                </ul>
+                
+                <h4>Важни забележки:</h4>
+                <ul style="margin: 10px 0; text-align: left;">
+                    <li><code>correct</code> е индекс (започва от 0)</li>
+                    <li>Трябват поне 2 опции</li>
+                    <li>Всички полета са задължителни</li>
+                    <li>JSON трябва да е масив от въпроси</li>
+                </ul>
+            </div>
+        `,
+        width: '700px',
+        confirmButtonText: 'Разбрах',
+        confirmButtonColor: '#007acc'
+    });
+}
+
+// Add event listener for JSON editor
+document.addEventListener('DOMContentLoaded', function() {
+    const jsonEditor = document.getElementById('json-editor');
+    if (jsonEditor) {
+        jsonEditor.addEventListener('input', validateJson);
+    }
+});

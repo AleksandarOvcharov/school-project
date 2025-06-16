@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="style.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fira Code Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
@@ -60,7 +62,11 @@
                             <p>Редактирай въпроси, добавяй нови и управлявай категориите</p>
                         </div>
                         
-                        
+                        <div class="dashboard-card" onclick="navigateToSection('json-writer')">
+                            <div class="card-icon"><i class="fas fa-code"></i></div>
+                            <h3>JSON Writer</h3>
+                            <p>Пиши въпроси директно в JSON формат за бързо добавяне</p>
+                        </div>
                         
                         <div class="dashboard-card" onclick="navigateToSection('settings')">
                             <div class="card-icon"><i class="fas fa-cog"></i></div>
@@ -153,9 +159,57 @@
                     </div>
                 </div>
 
+                <!-- JSON Writer Section -->
+                <div id="json-writer-section" class="admin-section" style="display: none;">
+                    <div class="json-writer-container">
+                        <div class="json-writer-header">
+                            <h3>JSON Writer</h3>
+                            <p>Пишете въпроси в JSON формат за бързо добавяне към базата данни</p>
+                        </div>
 
+                        <div class="json-writer-content">
+                            <div class="json-editor-panel">
+                                <div class="editor-header">
+                                    <h4>JSON Editor</h4>
+                                    <div class="editor-buttons">
+                                        <button class="template-btn" onclick="loadJsonTemplate()">
+                                            <i class="fas fa-file-code"></i> Зареди шаблон
+                                        </button>
+                                        <button class="validate-btn" onclick="validateJson()">
+                                            <i class="fas fa-check-circle"></i> Валидирай
+                                        </button>
+                                        <button class="clear-btn" onclick="clearJsonEditor()">
+                                            <i class="fas fa-trash"></i> Изчисти
+                                        </button>
+                                    </div>
+                                </div>
+                                <textarea id="json-editor" class="json-editor" placeholder="Въведете JSON с въпроси тук..."></textarea>
+                                <div class="editor-status">
+                                    <span id="json-status" class="status-info">Готов за въвеждане</span>
+                                    <span id="json-count" class="question-count">0 въпроса</span>
+                                </div>
+                            </div>
 
+                            <div class="json-preview-panel">
+                                <div class="preview-header">
+                                    <h4>Преглед на въпросите</h4>
+                                </div>
+                                <div id="json-preview" class="json-preview">
+                                    <p class="preview-placeholder">Въведете валиден JSON за да видите превюто</p>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="json-writer-actions">
+                            <button class="save-json-btn" onclick="saveJsonQuestions()" disabled>
+                                <i class="fas fa-save"></i> Запази въпросите
+                            </button>
+                            <button class="example-btn" onclick="showJsonExamples()">
+                                <i class="fas fa-lightbulb"></i> Примери
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Settings Section -->
                 <div id="settings-section" class="admin-section" style="display: none;">
