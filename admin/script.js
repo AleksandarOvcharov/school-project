@@ -37,7 +37,7 @@ async function initializeWithEnv() {
     } catch (error) {
         Swal.fire({
             title: 'Грешка в конфигурацията!',
-            text: 'Моля, уверете се че файлът .env съществува и е правилно настроен.',
+            text: 'Моля, уверете се че конфигурацията е правилно настроена.',
             icon: 'error',
             confirmButtonColor: '#007acc'
         });
@@ -87,10 +87,69 @@ async function loadHeaderAndFooter() {
     await loadComponent('header-component', '../components/header.html');
     await loadComponent('footer-component', '../components/footer.html');
     
-    // Setup mobile menu after header is loaded
-    setTimeout(() => {
+    // Apply saved title after header is loaded
+    setTimeout(async () => {
+        await applySavedSiteTitle();
         setupMobileMenu();
     }, 100);
+}
+
+// Function to load site title from Supabase
+async function loadSiteTitleFromSupabase() {
+    try {
+        if (!supabase) return null;
+        
+        const { data, error } = await supabase
+            .from('quiz_settings')
+            .select('setting_value')
+            .eq('setting_key', 'site_settings')
+            .single();
+
+        if (!error && data && data.setting_value && data.setting_value.siteTitle) {
+            return data.setting_value.siteTitle;
+        }
+    } catch (error) {
+        console.error('Error loading site title from Supabase:', error);
+    }
+    return null;
+}
+
+// Function to apply saved site title
+async function applySavedSiteTitle() {
+    try {
+        // Try to load from Supabase first
+        let savedTitle = await loadSiteTitleFromSupabase();
+        
+        // Fallback to localStorage
+        if (!savedTitle) {
+            savedTitle = localStorage.getItem('main_site_title');
+        }
+        
+        if (savedTitle) {
+            // Update page title
+            document.title = savedTitle + ' - Админ панел';
+            
+            // Update header title when header is loaded
+            setTimeout(() => {
+                const headerTitle = document.querySelector('h1 a');
+                if (headerTitle) {
+                    headerTitle.textContent = savedTitle;
+                }
+            }, 100);
+        }
+    } catch (error) {
+        // Silent error handling - fallback to localStorage
+        const savedTitle = localStorage.getItem('main_site_title');
+        if (savedTitle) {
+            document.title = savedTitle + ' - Админ панел';
+            setTimeout(() => {
+                const headerTitle = document.querySelector('h1 a');
+                if (headerTitle) {
+                    headerTitle.textContent = savedTitle;
+                }
+            }, 100);
+        }
+    }
 }
 
 // Setup mobile menu functionality
@@ -263,7 +322,7 @@ const elements = {
     categorySelect: document.getElementById('category'),
     explanationText: document.getElementById('explanation'),
     cancelEditBtn: document.getElementById('cancel-edit')
-}; 
+};
 
 function setupEventListeners() {
     // Login form
@@ -774,9 +833,9 @@ async function seedInitialQuestions() {
 
             // Only insert if question doesn't exist
             if (!existingQuestion || existingQuestion.length === 0) {
-                await supabase
-                    .from('quiz_questions')
-                    .insert([question]);
+            await supabase
+                .from('quiz_questions')
+                .insert([question]);
             }
         }
 
@@ -1627,46 +1686,59 @@ async function loadSettings() {
         if (securitySettings.hasOwnProperty('sessionTimeout')) document.getElementById('session-timeout').checked = securitySettings.sessionTimeout;
         
         // Apply current site title to page if exists
-        applySiteTitleSettings();
+        await applySiteTitleSettings();
         
     } catch (error) {
         console.error('Error loading settings from Supabase, falling back to localStorage:', error);
         
         // Fallback to localStorage
-        const siteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
-        const quizSettings = JSON.parse(localStorage.getItem('admin_settings_quiz') || '{}');
-        const securitySettings = JSON.parse(localStorage.getItem('admin_settings_security') || '{}');
-        
-        // Apply site settings
-        if (siteSettings.siteTitle) document.getElementById('site-title').value = siteSettings.siteTitle;
-        
-        // Apply quiz settings
-        if (quizSettings.timeLimit) document.getElementById('quiz-time-limit').value = quizSettings.timeLimit;
-        if (quizSettings.passingScore) document.getElementById('passing-score').value = quizSettings.passingScore;
-        if (quizSettings.hasOwnProperty('showExplanations')) document.getElementById('show-explanations').checked = quizSettings.showExplanations;
-        if (quizSettings.hasOwnProperty('randomizeQuestions')) document.getElementById('randomize-questions').checked = quizSettings.randomizeQuestions;
-        
-        // Apply security settings
-        if (securitySettings.hasOwnProperty('sessionTimeout')) document.getElementById('session-timeout').checked = securitySettings.sessionTimeout;
-        
-        // Apply current site title to page if exists
-        applySiteTitleSettings();
+    const siteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
+    const quizSettings = JSON.parse(localStorage.getItem('admin_settings_quiz') || '{}');
+    const securitySettings = JSON.parse(localStorage.getItem('admin_settings_security') || '{}');
+    
+    // Apply site settings
+    if (siteSettings.siteTitle) document.getElementById('site-title').value = siteSettings.siteTitle;
+    
+    // Apply quiz settings
+    if (quizSettings.timeLimit) document.getElementById('quiz-time-limit').value = quizSettings.timeLimit;
+    if (quizSettings.passingScore) document.getElementById('passing-score').value = quizSettings.passingScore;
+    if (quizSettings.hasOwnProperty('showExplanations')) document.getElementById('show-explanations').checked = quizSettings.showExplanations;
+    if (quizSettings.hasOwnProperty('randomizeQuestions')) document.getElementById('randomize-questions').checked = quizSettings.randomizeQuestions;
+    
+    // Apply security settings
+    if (securitySettings.hasOwnProperty('sessionTimeout')) document.getElementById('session-timeout').checked = securitySettings.sessionTimeout;
+    
+    // Apply current site title to page if exists
+    await applySiteTitleSettings();
     }
 }
 
-function applySiteTitleSettings() {
-    const siteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
-    if (siteSettings.siteTitle) {
-        updateSiteTitles(siteSettings.siteTitle);
+async function applySiteTitleSettings() {
+    try {
+        // Try to load from Supabase first
+        const siteSettings = await loadSettingsFromSupabase('site_settings') || {};
+        
+        if (siteSettings.siteTitle) {
+            updateSiteTitles(siteSettings.siteTitle);
+            return;
+        }
+    } catch (error) {
+        console.error('Error loading site settings from Supabase:', error);
+    }
+    
+    // Fallback to localStorage
+    const localSiteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
+    if (localSiteSettings.siteTitle) {
+        updateSiteTitles(localSiteSettings.siteTitle);
     }
 }
 
 function updateSiteTitles(newTitle) {
     // Update admin panel title
-    document.title = newTitle + ' - Admin Panel';
+    document.title = newTitle + ' - Админ панел';
     
     // Update header title if it exists in admin panel
-    const adminHeaderTitle = document.querySelector('h1');
+    const adminHeaderTitle = document.querySelector('h1 a');
     if (adminHeaderTitle) {
         adminHeaderTitle.textContent = newTitle;
     }

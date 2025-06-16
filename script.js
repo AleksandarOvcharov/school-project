@@ -31,13 +31,31 @@ function setActiveNav() {
         link.classList.remove('active');
         const href = link.getAttribute('href');
         
-        // Check for exact match or if current path starts with the href
-        if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
-            link.classList.add('active');
-        }
-        // Special case for home page
-        if (currentPath === '/' && href === '/') {
-            link.classList.add('active');
+        if (href) {
+            // Normalize paths for comparison
+            let normalizedHref = href;
+            let normalizedPath = currentPath;
+            
+            // Handle root page
+            if (currentPath === '/' || currentPath === '/index.html') {
+                if (href === '/' || href === '../' || href === 'index.html' || href === '../index.html') {
+                    link.classList.add('active');
+                }
+            } else {
+                // For subdirectory pages, check if href matches current directory
+                const pathParts = currentPath.split('/').filter(part => part !== '');
+                if (pathParts.length > 0) {
+                    const currentDir = pathParts[0];
+                    
+                    // Check various href formats that could match current directory
+                    if (href.includes('/' + currentDir) || 
+                        href.includes(currentDir + '/') ||
+                        href.endsWith('/' + currentDir) ||
+                        (href.startsWith('../') && href.includes(currentDir))) {
+                        link.classList.add('active');
+                    }
+                }
+            }
         }
     });
 }
@@ -48,12 +66,18 @@ let supabase;
 // Initialize Supabase
 async function initializeSupabase() {
     try {
-        const { createClient } = window.supabase;
-        supabase = createClient(
-            'https://rwlvgzbezcjdmwqidsvu.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3bHZnemJlemNqZG13cWlkc3Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjUzNDIsImV4cCI6MjA2NTI0MTM0Mn0.wtr2Q4ueBH-rhZ6pHpdQm9qdOG5m8dhAczIKHvvHqqw'
-        );
-        return true;
+        // Load environment variables if available
+        if (window.envLoader) {
+            await window.envLoader.loadEnv();
+            const env = window.envLoader.getAll();
+            
+            if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+                const { createClient } = window.supabase;
+                supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+                return true;
+            }
+        }
+        return false;
     } catch (error) {
         console.error('Supabase initialization failed:', error);
         return false;
@@ -130,10 +154,27 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Initialize Supabase first
     await initializeSupabase();
     
-    const basePath = '/components/';
+    // Determine the correct path to components based on current location
+    let basePath = 'components/';
+    const currentPath = window.location.pathname;
+    
+    // If we're not in the root directory, use relative path
+    if (currentPath !== '/' && currentPath !== '/index.html') {
+        // Check if we're in a subdirectory (contains additional slash after the domain)
+        const pathParts = currentPath.split('/').filter(part => part !== '');
+        if (pathParts.length > 0) {
+            basePath = '../components/';
+        }
+    }
+    
     loadComponent('header-component', basePath + 'header.html').then(async () => {
         // Apply saved title after header is loaded
         await applySavedSiteTitle();
+        
+        // Setup mobile menu after header is loaded
+        setTimeout(() => {
+            setupMobileMenu();
+        }, 100);
     });
     loadComponent('footer-component', basePath + 'footer.html');    
 
@@ -231,34 +272,38 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     });
     
-    // Затваряне на мобилното меню при клик на връзка
-    const mobileNavLinks = document.querySelectorAll('.nav-menu a');
-    mobileNavLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            const navMenu = document.querySelector('.nav-menu');
-            const mobileBtn = document.querySelector('.mobile-menu-btn');
-            
-            if (navMenu && mobileBtn) {
+
+
+// Setup mobile menu functionality
+function setupMobileMenu() {
+    const mobileBtn = document.querySelector('.mobile-menu-btn');
+    const navMenu = document.querySelector('.nav-menu');
+    
+    if (mobileBtn && navMenu) {
+        mobileBtn.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+            this.classList.toggle('active');
+        });
+        
+        // Close mobile menu when clicking on links
+        const mobileNavLinks = document.querySelectorAll('.nav-menu a');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navMenu.classList.remove('active');
+                mobileBtn.classList.remove('active');
+            });
+        });
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const header = document.querySelector('header');
+            if (header && !header.contains(e.target) && navMenu.classList.contains('active')) {
                 navMenu.classList.remove('active');
                 mobileBtn.classList.remove('active');
             }
         });
-    });
-    
-    // Затваряне на мобилното меню при клик извън него
-    document.addEventListener('click', function(e) {
-        const navMenu = document.querySelector('.nav-menu');
-        const mobileBtn = document.querySelector('.mobile-menu-btn');
-        const header = document.querySelector('header');
-        
-        if (navMenu && mobileBtn && header) {
-            // Ако кликът е извън header-a и менюто е отворено
-            if (!header.contains(e.target) && navMenu.classList.contains('active')) {
-                navMenu.classList.remove('active');
-                mobileBtn.classList.remove('active');
-            }
-        }
-    });
+    }
+}
 
 // Функция за показване/скриване на меню на мобилни устройства
 function toggleMobileMenu() {

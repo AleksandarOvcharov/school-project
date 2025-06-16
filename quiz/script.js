@@ -181,13 +181,125 @@ const elements = {
 // Supabase client
 let quizSupabase;
 
+// Load header and footer components
+async function loadComponent(elementId, componentPath) {
+    try {
+        const response = await fetch(componentPath);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const html = await response.text();
+        document.getElementById(elementId).innerHTML = html;
+        
+        // Set active navigation
+        if (elementId === 'header-component') {
+            setActiveNav();
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error loading component:', error);
+        return false;
+    }
+}
+
+// Function to set active navigation based on current page
+function setActiveNav() {
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('nav a');
+    
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        const href = link.getAttribute('href');
+        
+        // Check for exact match or if current path starts with the href
+        if (currentPath === href || (href !== '/' && currentPath.startsWith(href))) {
+            link.classList.add('active');
+        }
+        // Special case for quiz page
+        if (currentPath.includes('/quiz') && href && href.includes('/quiz')) {
+            link.classList.add('active');
+        }
+    });
+}
+
+// Function to load site title from Supabase
+async function loadSiteTitleFromSupabase() {
+    try {
+        if (!quizSupabase) return null;
+        
+        const { data, error } = await quizSupabase
+            .from('quiz_settings')
+            .select('setting_value')
+            .eq('setting_key', 'site_settings')
+            .single();
+
+        if (!error && data && data.setting_value && data.setting_value.siteTitle) {
+            return data.setting_value.siteTitle;
+        }
+    } catch (error) {
+        console.error('Error loading site title from Supabase:', error);
+    }
+    return null;
+}
+
+// Function to apply saved site title
+async function applySavedSiteTitle() {
+    try {
+        // Try to load from Supabase first
+        let savedTitle = await loadSiteTitleFromSupabase();
+        
+        // Fallback to localStorage
+        if (!savedTitle) {
+            savedTitle = localStorage.getItem('main_site_title');
+        }
+        
+        if (savedTitle) {
+            // Update page title
+            document.title = savedTitle + ' - Тест';
+            
+            // Update header title when header is loaded
+            setTimeout(() => {
+                const headerTitle = document.querySelector('h1 a');
+                if (headerTitle) {
+                    headerTitle.textContent = savedTitle;
+                }
+            }, 100);
+        }
+    } catch (error) {
+        // Silent error handling - fallback to localStorage
+        const savedTitle = localStorage.getItem('main_site_title');
+        if (savedTitle) {
+            document.title = savedTitle + ' - Тест';
+            setTimeout(() => {
+                const headerTitle = document.querySelector('h1 a');
+                if (headerTitle) {
+                    headerTitle.textContent = savedTitle;
+                }
+            }, 100);
+        }
+    }
+}
+
+// Listen for title updates from admin panel
+window.addEventListener('storage', function(e) {
+    if (e.key === 'main_site_title') {
+        applySavedSiteTitle();
+    }
+});
+
 // Initialize quiz
 document.addEventListener('DOMContentLoaded', async function() {
-    // Wait for header to load first
-    await waitForHeaderLoad();
+    // Load header and footer components first
+    const basePath = '../components/';
+    await loadComponent('header-component', basePath + 'header.html');
+    await loadComponent('footer-component', basePath + 'footer.html');
     
     // Initialize Supabase
     await initializeSupabase();
+    
+    // Apply saved title after header is loaded
+    await applySavedSiteTitle();
     
     // Load admin settings first
     await loadQuizSettings();
@@ -208,40 +320,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // Wait for header component to load
-async function waitForHeaderLoad() {
-    return new Promise((resolve) => {
-        let attempts = 0;
-        const maxAttempts = 50; // 5 seconds max wait
-        
-        const checkHeader = () => {
-            const header = document.querySelector('header');
-            const headerContent = document.querySelector('#header-component');
-            
-            if (header && header.innerHTML.trim() !== '') {
-                resolve();
-            } else if (headerContent && headerContent.innerHTML.trim() !== '') {
-                resolve();
-            } else if (attempts >= maxAttempts) {
-                resolve();
-            } else {
-                attempts++;
-                setTimeout(checkHeader, 100);
-            }
-        };
-        
-        checkHeader();
-    });
-}
+
 
 async function initializeSupabase() {
     try {
-        // Use same credentials as admin panel
-        const SUPABASE_URL = 'https://rwlvgzbezcjdmwqidsvu.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3bHZnemJlemNqZG13cWlkc3Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjUzNDIsImV4cCI6MjA2NTI0MTM0Mn0.wtr2Q4ueBH-rhZ6pHpdQm9qdOG5m8dhAczIKHvvHqqw';
-        
-        quizSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Load environment variables if available
+        if (window.envLoader) {
+            await window.envLoader.loadEnv();
+            const env = window.envLoader.getAll();
+            
+            if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+                quizSupabase = window.supabase.createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+            }
+        }
     } catch (error) {
-        // Supabase not available, use fallback data
+        // Environment not available or Supabase not available, use fallback data
     }
 }
 
