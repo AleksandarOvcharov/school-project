@@ -1,6 +1,81 @@
 [build]
-  functions = "netlify/functions"
   publish = "."
-
-[dev]
   functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/quiz"
+  to = "/quiz/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/about"
+  to = "/about/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/what"
+  to = "/what/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/protection"
+  to = "/protection/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/law"
+  to = "/law/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/consequences"
+  to = "/consequences/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/channels"
+  to = "/channels/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/victim"
+  to = "/victim/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/forms"
+  to = "/forms/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/contacts"
+  to = "/contacts/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/resources"
+  to = "/resources/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/map"
+  to = "/map/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/game"
+  to = "/game/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/statistics"
+  to = "/statistics/index.html"
+  status = 200

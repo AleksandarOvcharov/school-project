@@ -1718,8 +1718,8 @@ async function applySiteTitleSettings() {
         // Try to load from Supabase first
         const siteSettings = await loadSettingsFromSupabase('site_settings') || {};
         
-        if (siteSettings.siteTitle) {
-            updateSiteTitles(siteSettings.siteTitle);
+    if (siteSettings.siteTitle) {
+        updateSiteTitles(siteSettings.siteTitle);
             return;
         }
     } catch (error) {
