@@ -1903,22 +1903,162 @@ function loadJsonTemplate() {
         }
     ];
     
-    const editor = document.getElementById('json-editor');
-    editor.value = JSON.stringify(template, null, 2);
-    
-    // Add basic syntax coloring to the template
-    addJsonSyntaxHighlighting(editor);
-    validateJson();
+    if (jsonEditor) {
+        jsonEditor.setValue(JSON.stringify(template, null, 2));
+    } else {
+        const editor = document.getElementById('json-editor');
+        if (editor) {
+            editor.value = JSON.stringify(template, null, 2);
+        }
+    }
 }
 
 // Basic JSON syntax highlighting function
-function addJsonSyntaxHighlighting(editor) {
-    // Add placeholder styling
-    editor.placeholder = "Въведете JSON с въпроси тук...\n\nПример:\n[\n  {\n    \"question\": \"Въпрос?\",\n    \"options\": [\"А\", \"Б\", \"В\", \"Г\"],\n    \"correct\": 0,\n    \"category\": \"definition\",\n    \"explanation\": \"Обяснение\"\n  }\n]";
+let jsonEditor;
+
+function addJsonSyntaxHighlighting(editorElement) {
+    // Initialize CodeMirror for JSON syntax highlighting
+    jsonEditor = CodeMirror(function(elt) {
+        editorElement.parentNode.replaceChild(elt, editorElement);
+    }, {
+        mode: 'application/json',
+        theme: 'default',
+        lineNumbers: true,
+        lineWrapping: true,
+        autoCloseBrackets: true,
+        matchBrackets: true,
+        indentUnit: 2,
+        tabSize: 2,
+        placeholder: "Въведете JSON с въпроси тук...\n\nПример:\n[\n  {\n    \"question\": \"Въпрос?\",\n    \"options\": [\"А\", \"Б\", \"В\", \"Г\"],\n    \"correct\": 0,\n    \"category\": \"definition\",\n    \"explanation\": \"Обяснение\"\n  }\n]",
+        extraKeys: {
+            "Ctrl-Space": "autocomplete",
+            "Tab": function(cm) {
+                cm.replaceSelection("  ", "end");
+            }
+        }
+    });
+    
+    // Style the CodeMirror instance
+    jsonEditor.setSize("100%", "450px");
+    
+    // Add custom CSS class
+    jsonEditor.getWrapperElement().classList.add('json-editor-codemirror');
+    
+    // Add event listeners
+    jsonEditor.on('change', function(instance) {
+        const value = instance.getValue();
+        applyJsonValidationToCodeMirror(instance, value);
+        
+        // Update validation functions to work with CodeMirror
+        const statusElement = document.getElementById('json-status');
+        const countElement = document.getElementById('json-count');
+        const saveBtn = document.querySelector('.save-json-btn');
+        
+        try {
+            if (!value.trim()) {
+                statusElement.textContent = 'Въведете JSON данни';
+                statusElement.className = 'status-info';
+                countElement.textContent = '0 въпроса';
+                saveBtn.disabled = true;
+                updateJsonPreview([]);
+                return;
+            }
+            
+            const data = JSON.parse(value);
+            if (!Array.isArray(data)) {
+                throw new Error('JSON трябва да е масив от въпроси');
+            }
+            
+            // Validate questions (same logic as before)
+            const validQuestions = [];
+            for (let i = 0; i < data.length; i++) {
+                const q = data[i];
+                if (!q.question || !q.options || !Array.isArray(q.options) || 
+                    !q.hasOwnProperty('correct') || !q.category || !q.explanation) {
+                    throw new Error(`Въпрос ${i + 1}: Невалидна структура`);
+                }
+                
+                if (q.options.length < 2) {
+                    throw new Error(`Въпрос ${i + 1}: Трябват поне 2 опции`);
+                }
+                
+                if (q.correct < 0 || q.correct >= q.options.length) {
+                    throw new Error(`Въпрос ${i + 1}: Невалиден правилен отговор`);
+                }
+                
+                const validCategories = ['definition', 'types', 'protection', 'legal', 'ethics'];
+                if (!validCategories.includes(q.category)) {
+                    throw new Error(`Въпрос ${i + 1}: Невалидна категория (${q.category})`);
+                }
+                
+                validQuestions.push(q);
+            }
+            
+            jsonEditorData = validQuestions;
+            statusElement.textContent = 'JSON е валиден';
+            statusElement.className = 'status-info valid';
+            countElement.textContent = `${validQuestions.length} въпроса`;
+            saveBtn.disabled = false;
+            
+            updateJsonPreview(validQuestions);
+            
+        } catch (error) {
+            statusElement.textContent = `Грешка: ${error.message}`;
+            statusElement.className = 'status-info invalid';
+            countElement.textContent = '0 въпроса';
+            saveBtn.disabled = true;
+            updateJsonPreview([]);
+        }
+    });
+}
+
+function applyJsonValidationToCodeMirror(instance, content) {
+    // Remove existing validation classes
+    instance.getWrapperElement().classList.remove('json-valid', 'json-invalid');
+    
+    if (!content.trim()) {
+        return;
+    }
+    
+    try {
+        JSON.parse(content);
+        instance.getWrapperElement().classList.add('json-valid');
+    } catch (e) {
+        instance.getWrapperElement().classList.add('json-invalid');
+    }
+}
+
+// Syntax highlighting functions removed - using simplified CSS approach instead
+
+function applyJsonValidation(editor) {
+    // This creates a visual validation effect using CSS classes
+    const content = editor.value;
+    
+    // Remove existing validation classes
+    editor.classList.remove('json-valid', 'json-invalid');
+    
+    if (!content.trim()) {
+        return;
+    }
+    
+    try {
+        JSON.parse(content);
+        editor.classList.add('json-valid');
+    } catch (e) {
+        editor.classList.add('json-invalid');
+    }
 }
 
 function validateJson() {
+    if (jsonEditor) {
+        // CodeMirror validation is handled in the change event
+        return;
+    }
+    
+    // Fallback for non-CodeMirror editor
     const editor = document.getElementById('json-editor');
+    if (!editor) return;
+    
     const statusElement = document.getElementById('json-status');
     const countElement = document.getElementById('json-count');
     const saveBtn = document.querySelector('.save-json-btn');
@@ -2021,8 +2161,9 @@ function updateJsonPreview(questions) {
 }
 
 function clearJsonEditor() {
-    document.getElementById('json-editor').value = '';
-    validateJson();
+    if (jsonEditor) {
+        jsonEditor.setValue('');
+    }
 }
 
 async function saveJsonQuestions() {

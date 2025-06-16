@@ -183,7 +183,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <textarea id="json-editor" class="json-editor" placeholder="Въведете JSON с въпроси тук..."></textarea>
+                                <div id="json-editor" class="json-editor" placeholder="Въведете JSON с въпроси тук..."></div>
                                 <div class="editor-status">
                                     <span id="json-status" class="status-info">Готов за въвеждане</span>
                                     <span id="json-count" class="question-count">0 въпроса</span>
@@ -355,6 +355,12 @@
     </main>
 
     <div id="footer-component"></div>
+    
+    <!-- CodeMirror for JSON syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
