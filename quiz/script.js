@@ -1,5 +1,4 @@
 // Quiz script loaded
-console.log('🚀 Quiz script loaded successfully!');
 
 // Quiz questions data - will be loaded from database
 let quizData = [
@@ -180,38 +179,59 @@ const elements = {
 };
 
 // Supabase client
-let supabase;
+let quizSupabase;
 
 // Initialize quiz
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Quiz initialization started...'); // Debug
+    // Wait for header to load first
+    await waitForHeaderLoad();
     
     // Initialize Supabase
     await initializeSupabase();
-    console.log('Supabase initialized'); // Debug
     
     // Load admin settings first
     await loadQuizSettings();
-    console.log('Settings loaded:', quizSettings); // Debug
     
     // Load questions from database
     await loadQuizQuestions();
-    console.log('Questions loaded, count:', quizData.length); // Debug
     
     // Apply randomization if enabled (after questions are loaded)
     if (quizSettings.randomizeQuestions) {
         shuffleArray(quizData);
-        console.log('Questions shuffled'); // Debug
     }
     
     setupEventListeners();
     elements.totalQuestions.textContent = quizData.length;
     
     // Update UI with settings (after everything is loaded)
-    console.log('Updating quiz info display...'); // Debug
     updateQuizInfoDisplay();
-    console.log('Quiz initialization completed'); // Debug
 });
+
+// Wait for header component to load
+async function waitForHeaderLoad() {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds max wait
+        
+        const checkHeader = () => {
+            const header = document.querySelector('header');
+            const headerContent = document.querySelector('#header-component');
+            
+            if (header && header.innerHTML.trim() !== '') {
+                resolve();
+            } else if (headerContent && headerContent.innerHTML.trim() !== '') {
+                resolve();
+            } else if (attempts >= maxAttempts) {
+                resolve();
+            } else {
+                attempts++;
+                setTimeout(checkHeader, 100);
+            }
+        };
+        
+        checkHeader();
+    });
+}
 
 async function initializeSupabase() {
     try {
@@ -219,7 +239,7 @@ async function initializeSupabase() {
         const SUPABASE_URL = 'https://rwlvgzbezcjdmwqidsvu.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3bHZnemJlemNqZG13cWlkc3Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjUzNDIsImV4cCI6MjA2NTI0MTM0Mn0.wtr2Q4ueBH-rhZ6pHpdQm9qdOG5m8dhAczIKHvvHqqw';
         
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        quizSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (error) {
         // Supabase not available, use fallback data
     }
@@ -227,11 +247,9 @@ async function initializeSupabase() {
 
 async function loadQuizSettings() {
     try {
-        console.log('Loading quiz settings from Supabase...'); // Debug
-        
         // Try to load from Supabase first
-        if (supabase) {
-            const { data, error } = await supabase
+        if (quizSupabase) {
+            const { data, error } = await quizSupabase
                 .from('quiz_settings')
                 .select('setting_value')
                 .eq('setting_key', 'quiz_settings')
@@ -239,36 +257,28 @@ async function loadQuizSettings() {
 
             if (!error && data && data.setting_value) {
                 const settings = data.setting_value;
-                console.log('Loaded settings from Supabase:', settings); // Debug
                 
                 if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
                 if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
                 if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
                 if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
                 
-                console.log('Final quiz settings from Supabase:', quizSettings); // Debug
                 return;
             }
         }
         
         // Fallback to localStorage
-        console.log('Falling back to localStorage...'); // Debug
         const savedSettings = localStorage.getItem('admin_settings_quiz');
-        console.log('Loading quiz settings from localStorage:', savedSettings); // Debug
         
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
-            console.log('Parsed settings from localStorage:', settings); // Debug
             
             if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
             if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
             if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
             if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
         }
-        
-        console.log('Final quiz settings:', quizSettings); // Debug
     } catch (error) {
-        console.error('Error loading quiz settings:', error);
         // Use default settings if error
     }
 }
@@ -281,12 +291,8 @@ function shuffleArray(array) {
 }
 
 function updateQuizInfoDisplay() {
-    console.log('updateQuizInfoDisplay called'); // Debug
-    console.log('Current quizSettings:', quizSettings); // Debug
-    
     // Update info section with current settings
     const infoSection = document.querySelector('#quiz-info .quiz-details');
-    console.log('Found infoSection:', infoSection); // Debug
     
     if (infoSection) {
         let randomizeInfo = '';
@@ -310,15 +316,10 @@ function updateQuizInfoDisplay() {
             ${randomizeInfo}
         `;
         
-        console.log('Setting innerHTML to:', htmlContent); // Debug
         infoSection.innerHTML = htmlContent;
-        console.log('innerHTML set successfully'); // Debug
     } else {
-        console.error('Could not find .quiz-details element!'); // Debug
-        
         // Try alternative selector
         const altSection = document.querySelector('#quiz-info');
-        console.log('Alternative quiz-info element:', altSection); // Debug
         
         if (altSection) {
             // Create the quiz-details div if it doesn't exist
@@ -327,12 +328,11 @@ function updateQuizInfoDisplay() {
                 detailsDiv = document.createElement('div');
                 detailsDiv.className = 'quiz-details';
                 altSection.appendChild(detailsDiv);
-                console.log('Created quiz-details div'); // Debug
             }
             
             let randomizeInfo = '';
             if (quizSettings.randomizeQuestions) {
-                randomizeInfo = '<div class="info-item"><strong>Въпросите са разбъркани</strong></div>';
+                randomizeInfo = '<div class="info-item"><strong>⚠️ Въпросите са разбъркани</strong></div>';
             }
             
             detailsDiv.innerHTML = `
@@ -350,18 +350,17 @@ function updateQuizInfoDisplay() {
                 </div>
                 ${randomizeInfo}
             `;
-            console.log('Used alternative method to set content'); // Debug
         }
     }
 }
 
 async function loadQuizQuestions() {
     try {
-        if (!supabase) {
+        if (!quizSupabase) {
             return; // Use fallback data already in quizData
         }
         
-        const { data, error } = await supabase
+        const { data, error } = await quizSupabase
             .from('quiz_questions')
             .select('*')
             .order('created_at', { ascending: true });
