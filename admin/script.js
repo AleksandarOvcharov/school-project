@@ -16,8 +16,8 @@ async function initializeWithEnv() {
             throw new Error('Environment variables not loaded');
         }
 
-        // Initialize Supabase client with environment variables
-        supabase = window.supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+        // Initialize Supabase client using global manager
+        supabase = await window.supabaseManager.initialize();
         
         // Set admin credentials from environment
         ADMIN_CREDENTIALS = {
@@ -2169,6 +2169,23 @@ function showJsonExamples() {
         width: '700px',
         confirmButtonText: 'Разбрах',
         confirmButtonColor: '#007acc'
+    });
+}
+
+// Show locked message for quiz settings
+function showLockedMessage() {
+    Swal.fire({
+        title: 'Функцията е заключена',
+        text: 'Настройките на теста са временно неактивни и са в процес на разработка.',
+        icon: 'info',
+        confirmButtonText: 'Разбрах',
+        confirmButtonColor: '#6c757d',
+        showClass: {
+            popup: 'animate__animated animate__fadeInDown animate__faster'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutUp animate__faster'
+        }
     });
 }
 

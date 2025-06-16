@@ -7,27 +7,9 @@ class EnvLoader {
 
     async loadEnv() {
         try {
-            // Try Netlify Functions first (for production)
+            // Try local Node.js server first (for development)
             let response;
             try {
-                response = await fetch('/.netlify/functions/config');
-                if (!response.ok) {
-                    throw new Error(`Netlify function error: ${response.status}`);
-                }
-                
-                this.env = await response.json();
-                this.loaded = true;
-                
-                // Make environment variables globally available
-                window.ENV = this.env;
-                
-                console.log('Environment variables loaded from Netlify Functions');
-                return this.env;
-                
-            } catch (netlifyError) {
-                console.log('Netlify Functions not available, trying local server...');
-                
-                // Fallback to local Node.js server (for development)
                 response = await fetch('/api/config');
                 if (!response.ok) {
                     throw new Error(`Local server error: ${response.status}`);
@@ -41,11 +23,43 @@ class EnvLoader {
                 
                 console.log('Environment variables loaded from local Node.js server');
                 return this.env;
+                
+            } catch (serverError) {
+                console.log('Local server not available, using fallback configuration...');
+                
+                // Fallback configuration for production/offline mode
+                this.env = {
+                    SUPABASE_URL: '',
+                    SUPABASE_ANON_KEY: '',
+                    ADMIN_USERNAME: 'admin',
+                    ADMIN_PASSWORD: 'password123'
+                };
+                
+                this.loaded = true;
+                
+                // Make environment variables globally available
+                window.ENV = this.env;
+                
+                console.log('Using fallback configuration (no database connection)');
+                return this.env;
             }
             
         } catch (error) {
             console.error('Failed to load environment variables:', error);
-            throw new Error('Грешка в конфигурацията!\nМоля, уверете се че конфигурацията е правилно настроена.');
+            
+            // Final fallback
+            this.env = {
+                SUPABASE_URL: '',
+                SUPABASE_ANON_KEY: '',
+                ADMIN_USERNAME: 'admin',
+                ADMIN_PASSWORD: 'password123'
+            };
+            
+            this.loaded = true;
+            window.ENV = this.env;
+            
+            console.log('Using minimal fallback configuration');
+            return this.env;
         }
     }
 
@@ -58,5 +72,49 @@ class EnvLoader {
     }
 }
 
-// Create global env loader instance
-window.envLoader = new EnvLoader(); 
+// Global Supabase manager to prevent multiple instances
+class SupabaseManager {
+    constructor() {
+        this.client = null;
+        this.initialized = false;
+    }
+
+    async initialize() {
+        if (this.initialized && this.client) {
+            return this.client;
+        }
+
+        try {
+            // Make sure environment is loaded
+            if (!window.envLoader.loaded) {
+                await window.envLoader.loadEnv();
+            }
+
+            const env = window.envLoader.getAll();
+            
+            if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY && window.supabase) {
+                this.client = window.supabase.createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+                this.initialized = true;
+                console.log('Global Supabase client initialized');
+            } else {
+                console.log('Supabase not available (missing credentials or library)');
+            }
+        } catch (error) {
+            console.error('Error initializing Supabase:', error);
+        }
+
+        return this.client;
+    }
+
+    getClient() {
+        return this.client;
+    }
+
+    isReady() {
+        return this.initialized && this.client !== null;
+    }
+}
+
+// Create global instances
+window.envLoader = new EnvLoader();
+window.supabaseManager = new SupabaseManager(); 

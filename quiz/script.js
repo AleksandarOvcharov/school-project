@@ -288,6 +288,135 @@ window.addEventListener('storage', function(e) {
     }
 });
 
+// Periodic settings check interval
+let settingsCheckInterval = null;
+let lastSettingsHash = null;
+
+// Add function to reload quiz settings and update UI from database
+async function reloadQuizSettingsFromDB() {
+    try {
+        console.log('Checking for quiz settings updates from database...');
+        
+        if (!quizSupabase) {
+            console.log('Supabase not available, skipping database check');
+            return;
+        }
+        
+        // Fetch latest settings from database
+        const { data: settingsData, error: settingsError } = await quizSupabase
+            .from('quiz_settings')
+            .select('setting_value, updated_at')
+            .eq('setting_key', 'quiz_settings')
+            .single();
+
+        if (settingsError) {
+            console.log('No settings found in database or error:', settingsError.message);
+        }
+
+        // Also fetch latest questions to get current count
+        const { data: questionsData, error: questionsError } = await quizSupabase
+            .from('quiz_questions')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        console.log('Current quizData length:', quizData.length);
+        console.log('Database questions length:', questionsData ? questionsData.length : 'no data');
+
+        let settingsChanged = false;
+        let questionsChanged = false;
+
+        // Check if settings changed
+        if (settingsData && settingsData.setting_value) {
+            const newSettingsHash = JSON.stringify(settingsData.setting_value);
+            
+            if (lastSettingsHash && lastSettingsHash !== newSettingsHash) {
+                console.log('Settings changed in database, updating...');
+                
+                // Update quiz settings
+                const settings = settingsData.setting_value;
+                
+                if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
+                if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
+                if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
+                if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
+                
+                settingsChanged = true;
+                console.log('Quiz settings updated from database:', settings);
+            } else if (!lastSettingsHash) {
+                // First time loading, force update
+                console.log('First time loading settings, forcing update');
+                settingsChanged = true;
+            }
+            
+            lastSettingsHash = newSettingsHash;
+        }
+
+        // Check if questions changed (new count or first load)
+        if (!questionsError && questionsData) {
+            if (questionsData.length !== quizData.length || quizData.length === 0) {
+                console.log(`Questions count changed: ${quizData.length} -> ${questionsData.length}`);
+                
+                // Update questions data
+                quizData = questionsData.map(item => ({
+                    question: item.question,
+                    options: item.options,
+                    correct: item.correct,
+                    category: item.category,
+                    explanation: item.explanation
+                }));
+                
+                questionsChanged = true;
+                console.log('Questions data updated, new count:', quizData.length);
+            }
+        }
+
+        // Update UI if anything changed or if this is the first load
+        if (settingsChanged || questionsChanged) {
+            console.log('Updating UI - settingsChanged:', settingsChanged, 'questionsChanged:', questionsChanged);
+            // Quiz info display removed
+            
+            // Always update total questions display when questions change
+            if (questionsChanged) {
+                elements.totalQuestions.textContent = quizData.length;
+                console.log('Updated totalQuestions element to:', quizData.length);
+            }
+            
+            // If quiz hasn't started yet, apply changes
+            if (!quizStarted) {
+                // Apply randomization if setting changed
+                if (quizSettings.randomizeQuestions) {
+                    shuffleArray(quizData);
+                    console.log('Applied randomization to questions');
+                }
+            }
+        } else {
+            console.log('No changes detected in settings or questions');
+        }
+    } catch (error) {
+        console.error('Error checking settings from database:', error);
+    }
+}
+
+// Start periodic checking for settings updates
+function startSettingsMonitoring() {
+    if (settingsCheckInterval) {
+        clearInterval(settingsCheckInterval);
+    }
+    
+    // Check every 5 seconds for settings changes
+    settingsCheckInterval = setInterval(reloadQuizSettingsFromDB, 5000);
+    console.log('Started monitoring quiz settings from database');
+}
+
+// Stop periodic checking
+function stopSettingsMonitoring() {
+    if (settingsCheckInterval) {
+        clearInterval(settingsCheckInterval);
+        settingsCheckInterval = null;
+        console.log('Stopped monitoring quiz settings');
+    }
+}
+
 // Initialize quiz
 document.addEventListener('DOMContentLoaded', async function() {
     // Load header and footer components first
@@ -302,7 +431,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     await applySavedSiteTitle();
     
     // Load admin settings first
+    console.log('Loading initial quiz settings...');
     await loadQuizSettings();
+    console.log('Initial settings loaded:', quizSettings);
     
     // Load questions from database
     await loadQuizQuestions();
@@ -313,10 +444,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     setupEventListeners();
-    elements.totalQuestions.textContent = quizData.length;
     
-    // Update UI with settings (after everything is loaded)
-    updateQuizInfoDisplay();
+        // Start monitoring settings changes from database
+    if (quizSupabase) {
+        console.log('Supabase available, loading settings from database...');
+        // Do initial check for any changes (this will update everything)
+        await reloadQuizSettingsFromDB();
+        console.log('Settings loaded. Current quizSettings:', quizSettings);
+        startSettingsMonitoring();
+    } else {
+        console.log('Supabase not available, using default settings');
+        // If no Supabase, still update UI with current data
+        elements.totalQuestions.textContent = quizData.length;
+        // Quiz info display removed
+    }
 });
 
 // Wait for header component to load
@@ -324,54 +465,74 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 async function initializeSupabase() {
     try {
-        // Load environment variables if available
-        if (window.envLoader) {
-            await window.envLoader.loadEnv();
-            const env = window.envLoader.getAll();
-            
-            if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
-                quizSupabase = window.supabase.createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-            }
+        // Use global Supabase manager to prevent multiple instances
+        if (window.supabaseManager) {
+            quizSupabase = await window.supabaseManager.initialize();
         }
     } catch (error) {
+        console.error('Failed to initialize Supabase in quiz:', error);
         // Environment not available or Supabase not available, use fallback data
     }
 }
 
 async function loadQuizSettings() {
     try {
+        console.log('loadQuizSettings called, quizSupabase available:', !!quizSupabase);
+        let settingsLoaded = false;
+        
         // Try to load from Supabase first
         if (quizSupabase) {
+            console.log('Fetching settings from Supabase...');
             const { data, error } = await quizSupabase
                 .from('quiz_settings')
                 .select('setting_value')
                 .eq('setting_key', 'quiz_settings')
                 .single();
 
+            console.log('Supabase response:', { data, error });
+
             if (!error && data && data.setting_value) {
                 const settings = data.setting_value;
+                console.log('Found settings in database:', settings);
                 
                 if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
                 if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
                 if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
                 if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
                 
-                return;
+                settingsLoaded = true;
+                console.log('Quiz settings loaded from Supabase:', settings);
+                console.log('Updated quizSettings object:', quizSettings);
+                
+                // Initialize settings hash for change detection
+                lastSettingsHash = JSON.stringify(settings);
+                console.log('Initialized lastSettingsHash:', lastSettingsHash);
+            } else {
+                console.log('No settings found in Supabase or error occurred');
             }
         }
         
-        // Fallback to localStorage
-        const savedSettings = localStorage.getItem('admin_settings_quiz');
-        
-        if (savedSettings) {
-            const settings = JSON.parse(savedSettings);
+        // Fallback to localStorage if Supabase failed
+        if (!settingsLoaded) {
+            console.log('Trying localStorage fallback...');
+            const savedSettings = localStorage.getItem('admin_settings_quiz');
             
-            if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
-            if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
-            if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
-            if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                console.log('Found settings in localStorage:', settings);
+                
+                if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
+                if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
+                if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
+                if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
+                
+                console.log('Quiz settings loaded from localStorage:', settings);
+            } else {
+                console.log('No settings found in localStorage either, using defaults');
+            }
         }
     } catch (error) {
+        console.error('Error loading quiz settings:', error);
         // Use default settings if error
     }
 }
@@ -383,69 +544,7 @@ function shuffleArray(array) {
     }
 }
 
-function updateQuizInfoDisplay() {
-    // Update info section with current settings
-    const infoSection = document.querySelector('#quiz-info .quiz-details');
-    
-    if (infoSection) {
-        let randomizeInfo = '';
-        if (quizSettings.randomizeQuestions) {
-            randomizeInfo = '<div class="info-item"><strong>Въпросите са разбъркани</strong></div>';
-        }
-        
-        const htmlContent = `
-            <div class="info-item">
-                <strong>Брой въпроси:</strong> ${quizData.length}
-            </div>
-            <div class="info-item">
-                <strong>Време за решаване:</strong> ${quizSettings.timeLimit} минути
-            </div>
-            <div class="info-item">
-                <strong>Минимален резултат:</strong> ${quizSettings.passingScore}%
-            </div>
-            <div class="info-item">
-                <strong>Обяснения:</strong> ${quizSettings.showExplanations ? 'Да' : 'Не'}
-            </div>
-            ${randomizeInfo}
-        `;
-        
-        infoSection.innerHTML = htmlContent;
-    } else {
-        // Try alternative selector
-        const altSection = document.querySelector('#quiz-info');
-        
-        if (altSection) {
-            // Create the quiz-details div if it doesn't exist
-            let detailsDiv = altSection.querySelector('.quiz-details');
-            if (!detailsDiv) {
-                detailsDiv = document.createElement('div');
-                detailsDiv.className = 'quiz-details';
-                altSection.appendChild(detailsDiv);
-            }
-            
-            let randomizeInfo = '';
-            if (quizSettings.randomizeQuestions) {
-                randomizeInfo = '<div class="info-item"><strong>⚠️ Въпросите са разбъркани</strong></div>';
-            }
-            
-            detailsDiv.innerHTML = `
-                <div class="info-item">
-                    <strong>Брой въпроси:</strong> ${quizData.length}
-                </div>
-                <div class="info-item">
-                    <strong>Време за решаване:</strong> ${quizSettings.timeLimit} минути
-                </div>
-                <div class="info-item">
-                    <strong>Минимален резултат:</strong> ${quizSettings.passingScore}%
-                </div>
-                <div class="info-item">
-                    <strong>Обяснения:</strong> ${quizSettings.showExplanations ? 'Да' : 'Не'}
-                </div>
-                ${randomizeInfo}
-            `;
-        }
-    }
-}
+// updateQuizInfoDisplay function removed
 
 async function loadQuizQuestions() {
     try {
@@ -490,8 +589,19 @@ function startQuiz() {
     currentQuestion = 0;
     userAnswers = [];
     
+    // Debug: Show current quiz settings when starting
+    console.log('Starting quiz with settings:', quizSettings);
+    console.log('Time limit (minutes):', quizSettings.timeLimit);
+    console.log('Passing score (%):', quizSettings.passingScore);
+    console.log('Show explanations:', quizSettings.showExplanations);
+    console.log('Randomize questions:', quizSettings.randomizeQuestions);
+    
+    // Stop monitoring settings during quiz
+    stopSettingsMonitoring();
+    
     // Initialize timer
     timeRemaining = quizSettings.timeLimit * 60; // Convert minutes to seconds
+    console.log('Timer set to:', timeRemaining, 'seconds');
     startTimer();
     
     showSection('questions');
@@ -789,13 +899,20 @@ function timeUp() {
     });
 }
 
-function retryQuiz() {
+async function retryQuiz() {
     currentQuestion = 0;
     userAnswers = [];
     quizStarted = false;
     quizCompleted = false;
     stopTimer();
+    
+    // Reload latest data when retrying
+    if (quizSupabase) {
+        await reloadQuizSettingsFromDB();
+        startSettingsMonitoring();
+    }
+    
     showSection('info');
-}
+} 
 
  

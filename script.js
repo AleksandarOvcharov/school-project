@@ -72,9 +72,9 @@ async function initializeSupabase() {
             const env = window.envLoader.getAll();
             
             if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
-                const { createClient } = window.supabase;
-                supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-                return true;
+                // Use global Supabase manager
+                supabase = await window.supabaseManager.initialize();
+                return supabase !== null;
             }
         }
         return false;
