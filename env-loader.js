@@ -8,43 +8,50 @@ class EnvLoader {
     async loadEnv() {
         try {
             // Try local Node.js server first (for development)
-            let response;
             try {
-                response = await fetch('/api/config');
-                if (!response.ok) {
-                    throw new Error(`Local server error: ${response.status}`);
+                const response = await fetch('/api/config');
+                if (response.ok) {
+                    this.env = await response.json();
+                    this.loaded = true;
+                    window.ENV = this.env;
+                    console.log('Environment variables loaded from local Node.js server');
+                    return this.env;
                 }
-                
-                this.env = await response.json();
-                this.loaded = true;
-                
-                // Make environment variables globally available
-                window.ENV = this.env;
-                
-                console.log('Environment variables loaded from local Node.js server');
-                return this.env;
-                
             } catch (serverError) {
-                console.log('Local server not available, trying to load .env file directly...');
-                
-                // Try to load .env file directly
-                try {
-                    const envResponse = await fetch('/.env');
-                    if (envResponse.ok) {
-                        const envText = await envResponse.text();
-                        this.env = this.parseEnvFile(envText);
-                        this.loaded = true;
-                        window.ENV = this.env;
-                        console.log('Environment variables loaded from .env file');
-                        return this.env;
-                    }
-                } catch (envError) {
-                    console.log('Could not load .env file directly');
-                }
-                
-                // If .env file is not accessible, throw error
-                throw new Error('No .env file available and no local server');
+                console.log('Local server not available, trying Netlify function...');
             }
+            
+            // Try Netlify function (for production)
+            try {
+                const netlifyResponse = await fetch('/.netlify/functions/config');
+                if (netlifyResponse.ok) {
+                    this.env = await netlifyResponse.json();
+                    this.loaded = true;
+                    window.ENV = this.env;
+                    console.log('Environment variables loaded from Netlify function');
+                    return this.env;
+                }
+            } catch (netlifyError) {
+                console.log('Netlify function not available, trying .env file...');
+            }
+            
+            // Try to load .env file directly (fallback)
+            try {
+                const envResponse = await fetch('/.env');
+                if (envResponse.ok) {
+                    const envText = await envResponse.text();
+                    this.env = this.parseEnvFile(envText);
+                    this.loaded = true;
+                    window.ENV = this.env;
+                    console.log('Environment variables loaded from .env file');
+                    return this.env;
+                }
+            } catch (envError) {
+                console.log('Could not load .env file directly');
+            }
+            
+            // If all methods fail, throw error
+            throw new Error('No configuration source available (tried server, Netlify function, and .env file)');
             
         } catch (error) {
             console.error('Failed to load environment variables:', error);
