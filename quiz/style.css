@@ -622,6 +622,10 @@ header h1 a:focus {
     border-color: #007acc;
 }
 
+.setting-display.full-width {
+    grid-column: 1 / -1;
+}
+
 .setting-display i {
     color: #007acc;
     font-size: 1.2rem;

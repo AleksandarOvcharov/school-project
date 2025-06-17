@@ -586,6 +586,13 @@ function updateQuizSettingsDisplay() {
             randomizeElement.textContent = quizSettings.randomizeQuestions ? 'Разбъркани' : 'По ред';
         }
         
+        // Update questions count
+        const questionsCountElement = document.getElementById('display-questions-count');
+        if (questionsCountElement) {
+            questionsCountElement.classList.remove('loading');
+            questionsCountElement.textContent = `${quizData.length} въпроса`;
+        }
+        
     } catch (error) {
     }
 }
@@ -596,7 +603,8 @@ function showQuizSettingsLoading() {
             'display-time-limit',
             'display-passing-score', 
             'display-explanations',
-            'display-randomize'
+            'display-randomize',
+            'display-questions-count'
         ];
         
         elements.forEach(id => {
@@ -646,10 +654,16 @@ async function loadQuizQuestions() {
         // Update total questions display
         elements.totalQuestions.textContent = quizData.length;
         
+        // Update settings display to reflect new questions count
+        updateQuizSettingsDisplay();
+        
     } catch (error) {
         
         // Update total questions display with fallback data
         elements.totalQuestions.textContent = quizData.length;
+        
+        // Update settings display even with fallback data
+        updateQuizSettingsDisplay();
     }
 }
 
