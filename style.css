@@ -447,9 +447,12 @@ footer {
     border-radius: 4px;
     transition: background 0.3s;
     position: absolute;
-    right: 0;
+    right: 15px;
     top: 50%;
     transform: translateY(-50%);
+    min-width: 40px;
+    min-height: 40px;
+    touch-action: manipulation;
 }
 
 .mobile-menu-btn:hover {
@@ -540,6 +543,7 @@ footer {
         margin-top: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         z-index: 1000;
+        width: 100%;
     }
     
     /* Show navigation when active */

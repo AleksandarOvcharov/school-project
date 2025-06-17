@@ -280,10 +280,11 @@ function setupMobileMenu() {
     const navMenu = document.querySelector('.nav-menu');
     
     if (mobileBtn && navMenu) {
-        mobileBtn.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-            this.classList.toggle('active');
-        });
+        // Remove any existing event listeners to prevent duplicates
+        mobileBtn.removeEventListener('click', toggleMobileMenuHandler);
+        
+        // Add click event listener
+        mobileBtn.addEventListener('click', toggleMobileMenuHandler);
         
         // Close mobile menu when clicking on links
         const mobileNavLinks = document.querySelectorAll('.nav-menu a');
@@ -305,8 +306,8 @@ function setupMobileMenu() {
     }
 }
 
-// Функция за показване/скриване на меню на мобилни устройства
-function toggleMobileMenu() {
+// Mobile menu toggle handler
+function toggleMobileMenuHandler() {
     const navMenu = document.querySelector('.nav-menu');
     const mobileBtn = document.querySelector('.mobile-menu-btn');
     
@@ -314,4 +315,6 @@ function toggleMobileMenu() {
         navMenu.classList.toggle('active');
         mobileBtn.classList.toggle('active');
     }
-} 
+}
+
+ 
