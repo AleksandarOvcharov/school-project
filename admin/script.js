@@ -554,6 +554,12 @@ function switchTab(tabName) {
 // Supabase functions
 async function initializeSupabase() {
     try {
+        // Only proceed if supabase is available
+        if (!supabase) {
+            console.log('Supabase not available, skipping initialization');
+            return;
+        }
+        
         // Check if table exists, if not create it
         await createQuestionsTable();
         
@@ -571,6 +577,7 @@ async function initializeSupabase() {
         }
     } catch (error) {
         // Fallback to local storage if Supabase is not configured - silent fallback
+        console.log('Supabase initialization failed, using fallback mode');
     }
 }
 
@@ -713,6 +720,10 @@ function fallbackCopyText(text) {
 // Function to sync questions from questions.json to Supabase
 async function syncQuestionsFromJson() {
     try {
+        if (!supabase) {
+            throw new Error('Supabase не е налично. Не може да се синхронизира с базата данни.');
+        }
+        
         console.log('Starting sync of questions from questions.json to Supabase...');
         
         // Load questions from JSON file
@@ -900,6 +911,11 @@ async function seedInitialQuestions() {
     ];
     
     try {
+        if (!supabase) {
+            console.log('Supabase not available, skipping initial questions seeding');
+            return;
+        }
+        
         for (const question of initialQuestions) {
             // Check if this question already exists
             const { data: existingQuestion, error: searchError } = await supabase
@@ -925,6 +941,10 @@ async function seedInitialQuestions() {
 async function loadQuestions() {
     try {
         showLoadingSpinner(elements.questionsList, 'Зареждане на въпросите...');
+        
+        if (!supabase) {
+            throw new Error('Supabase not available');
+        }
         
         const { data, error } = await supabase
             .from('quiz_questions')
@@ -1045,6 +1065,10 @@ async function handleQuestionSubmit(e) {
 
 async function addQuestion(questionData) {
     try {
+        if (!supabase) {
+            throw new Error('Supabase not available');
+        }
+        
         const { data, error } = await supabase
             .from('quiz_questions')
             .insert([questionData])
@@ -1077,6 +1101,10 @@ async function addQuestion(questionData) {
 
 async function updateQuestion(id, questionData) {
     try {
+        if (!supabase) {
+            throw new Error('Supabase not available');
+        }
+        
         const { data, error } = await supabase
             .from('quiz_questions')
             .update(questionData)
@@ -1124,6 +1152,10 @@ async function deleteQuestion(id) {
     
     if (result.isConfirmed) {
         try {
+            if (!supabase) {
+                throw new Error('Supabase not available');
+            }
+            
             const { error } = await supabase
                 .from('quiz_questions')
                 .delete()
@@ -1281,6 +1313,10 @@ async function saveSettings(section, event = null) {
 
 async function saveSettingsToSupabase(settingKey, settingValue) {
     try {
+        if (!supabase) {
+            throw new Error('Supabase not available');
+        }
+        
         // Try to update existing setting
         const { data: updateData, error: updateError } = await supabase
             .from('quiz_settings')
@@ -1315,6 +1351,10 @@ async function saveSettingsToSupabase(settingKey, settingValue) {
 
 async function loadSettingsFromSupabase(settingKey) {
     try {
+        if (!supabase) {
+            throw new Error('Supabase not available');
+        }
+        
         const { data, error } = await supabase
             .from('quiz_settings')
             .select('setting_value')
@@ -1392,10 +1432,14 @@ function importQuestions(input) {
             if (result.isConfirmed) {
                 // Try to save to Supabase first, fallback to localStorage
                 try {
-                    for (const question of importedQuestions) {
-                        await supabase
-                            .from('quiz_questions')
-                            .insert([question]);
+                    if (supabase) {
+                        for (const question of importedQuestions) {
+                            await supabase
+                                .from('quiz_questions')
+                                .insert([question]);
+                        }
+                    } else {
+                        throw new Error('Supabase not available');
                     }
                 } catch (dbError) {
                     // Fallback to localStorage
@@ -1443,6 +1487,16 @@ async function removeDuplicateQuestions() {
 
     if (result.isConfirmed) {
         try {
+            if (!supabase) {
+                Swal.fire({
+                    title: 'Грешка!',
+                    text: 'Няма връзка с базата данни. Не може да се премахнат дублираните въпроси.',
+                    icon: 'error',
+                    confirmButtonColor: '#007acc'
+                });
+                return;
+            }
+            
             // Show loading
             Swal.fire({
                 title: 'Изчистване...',
@@ -1574,10 +1628,12 @@ function clearAllDataConfirm() {
         if (result.isConfirmed) {
             try {
                 // Clear Supabase data
-                await supabase
-                    .from('quiz_questions')
-                    .delete()
-                    .gte('id', 0);
+                if (supabase) {
+                    await supabase
+                        .from('quiz_questions')
+                        .delete()
+                        .gte('id', 0);
+                }
             } catch (error) {
                 // Silent error
             }
@@ -1881,6 +1937,12 @@ function updateMainSiteTitles(newTitle) {
 
 async function initializeSettings() {
     try {
+        // Only proceed if supabase is available
+        if (!supabase) {
+            console.log('Supabase not available, skipping settings initialization');
+            return;
+        }
+        
         // Check if settings exist
         const { data: existingSettings, error: checkError } = await supabase
             .from('quiz_settings')
