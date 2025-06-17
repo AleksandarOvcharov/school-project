@@ -12,6 +12,10 @@
     <!-- Environment Loader -->
     <script src="../env-loader.js"></script>
     <script src="../script.js" defer></script>
+    <!-- YAML Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <!-- Code Statistics Calculator -->
+    <script src="calc.js" defer></script>
 </head>
 <body>
     <div id="header-component"></div>
@@ -94,35 +98,39 @@
                 <div class="highlight" style="margin-bottom: 2rem;">
                     <h4><i class="fas fa-chart-bar" style="margin-right: 8px; color: #007acc;"></i>Технически детайли:</h4>
                     <div style="margin-top: 1rem;">
-                        <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #e34c26; display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div data-tech="html" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #e34c26; display: flex; align-items: center; margin-bottom: 1rem;">
                             <i class="fab fa-html5" style="font-size: 1.5rem; color: #e34c26; margin-right: 10px;"></i>
                             <span><strong>HTML</strong> кодът е 2207 реда</span>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #1572b6; display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div data-tech="css" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #1572b6; display: flex; align-items: center; margin-bottom: 1rem;">
                             <i class="fab fa-css3-alt" style="font-size: 1.5rem; color: #1572b6; margin-right: 10px;"></i>
                             <span><strong>CSS</strong> кодът е 3398 реда</span>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #f7df1e; display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div data-tech="js" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #f7df1e; display: flex; align-items: center; margin-bottom: 1rem;">
                             <i class="fab fa-js-square" style="font-size: 1.5rem; color: #f7df1e; margin-right: 10px;"></i>
                             <span><strong>JS</strong> кодът е 4125 реда</span>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #ff6600; display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div data-tech="xml" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #ff6600; display: flex; align-items: center; margin-bottom: 1rem;">
                             <i class="fas fa-code" style="font-size: 1.5rem; color: #ff6600; margin-right: 10px;"></i>
                             <span><strong>XML</strong> кодът е 102 реда</span>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #336791; display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div data-tech="sql" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #336791; display: flex; align-items: center; margin-bottom: 1rem;">
                             <i class="fas fa-database" style="font-size: 1.5rem; color: #336791; margin-right: 10px;"></i>
                             <span><strong>SQL</strong> кодът е 83 реда</span>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #9c4221; display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div data-tech="toml" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #9c4221; display: flex; align-items: center; margin-bottom: 1rem;">
                             <i class="fas fa-cog" style="font-size: 1.5rem; color: #9c4221; margin-right: 10px;"></i>
                             <span><strong>TOML</strong> кодът е 82 реда</span>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #ff8c00; display: flex; align-items: center; margin-bottom: 1rem;">
+                        <div data-tech="json" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #ff8c00; display: flex; align-items: center; margin-bottom: 1rem;">
                             <i class="fas fa-file-code" style="font-size: 1.5rem; color: #ff8c00; margin-right: 10px;"></i>
                             <span><strong>JSON</strong> кодът е 950 реда</span>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #333; display: flex; align-items: center;">
+                        <div data-tech="yaml" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #cb171e; display: flex; align-items: center; margin-bottom: 1rem;">
+                            <i class="fas fa-file-alt" style="font-size: 1.5rem; color: #cb171e; margin-right: 10px;"></i>
+                            <span><strong>YAML</strong> кодът е 17 реда</span>
+                        </div>
+                        <div data-tech="total" style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #333; display: flex; align-items: center;">
                             <i class="fas fa-calculator" style="font-size: 1.5rem; color: #333; margin-right: 10px;"></i>
                             <span><strong>ОБЩО</strong> кодът е 10 947 реда</span>
                         </div>

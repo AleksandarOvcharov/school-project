@@ -1,0 +1,17 @@
+# Статистика за редове код по технологии
+technologies:
+  html: 2207
+  css: 3398
+  js: 4125
+  xml: 102
+  sql: 83
+  toml: 82
+  json: 950
+  yaml: 17
+
+# Метаданни
+metadata:
+  lastUpdated: "2025-06-17"
+  measuredWith: "Line Counter"
+  toolUrl: "https://linecountr.vercel.app"
+  description: "Автоматично броене на редовете код в проекта" 
