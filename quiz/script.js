@@ -424,8 +424,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadComponent('header-component', basePath + 'header.html');
     await loadComponent('footer-component', basePath + 'footer.html');
     
-    // Initialize Supabase
-    await initializeSupabase();
+    // Wait for env-loader to complete
+    console.log('Waiting for env-loader to complete...');
+    let envWaitAttempts = 0;
+    const maxEnvWaitAttempts = 30; // Wait up to 3 seconds
+    
+    while (!window.supabaseManager && envWaitAttempts < maxEnvWaitAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        envWaitAttempts++;
+        console.log(`Waiting for env-loader... attempt ${envWaitAttempts}/${maxEnvWaitAttempts}`);
+    }
+    
+    // Initialize Supabase for quiz
+    console.log('About to call initializeQuizSupabase()');
+    console.log('initializeQuizSupabase function exists:', typeof initializeQuizSupabase);
+    try {
+        await initializeQuizSupabase();
+        console.log('initializeQuizSupabase() completed successfully');
+    } catch (error) {
+        console.error('Error in initializeQuizSupabase():', error);
+        console.log('initializeQuizSupabase() completed with error');
+    }
     
     // Apply saved title after header is loaded
     await applySavedSiteTitle();
@@ -463,16 +482,64 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Wait for header component to load
 
 
-async function initializeSupabase() {
+async function initializeQuizSupabase() {
+    console.log('=== Quiz initializeQuizSupabase START ===');
     try {
+        console.log('Quiz initializeQuizSupabase called');
+        console.log('window.supabaseManager available:', !!window.supabaseManager);
+        console.log('window.envLoader available:', !!window.envLoader);
+        
+        // Wait for env-loader to be ready if not yet available
+        if (!window.supabaseManager && window.envLoader) {
+            console.log('Waiting for env-loader to initialize supabaseManager...');
+            
+            // Wait a bit for env-loader to set up supabaseManager
+            let attempts = 0;
+            const maxAttempts = 20; // Wait up to 2 seconds
+            
+            while (!window.supabaseManager && attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+                console.log(`Waiting for supabaseManager... attempt ${attempts}/${maxAttempts}`);
+            }
+        }
+        
         // Use global Supabase manager to prevent multiple instances
         if (window.supabaseManager) {
+            console.log('Attempting to initialize Supabase via supabaseManager...');
             quizSupabase = await window.supabaseManager.initialize();
+            console.log('Quiz Supabase initialization result:', !!quizSupabase);
+            
+            if (quizSupabase) {
+                console.log('Successfully initialized Supabase in quiz');
+                
+                // Test the connection with a simple query
+                try {
+                    const { data, error } = await quizSupabase
+                        .from('quiz_settings')
+                        .select('id')
+                        .limit(1);
+                    
+                    if (error) {
+                        console.error('Supabase connection test failed:', error);
+                    } else {
+                        console.log('Supabase connection test successful');
+                    }
+                } catch (testError) {
+                    console.error('Supabase connection test error:', testError);
+                }
+            } else {
+                console.warn('Supabase manager returned null/undefined');
+            }
+        } else {
+            console.warn('window.supabaseManager not available after waiting');
         }
     } catch (error) {
         console.error('Failed to initialize Supabase in quiz:', error);
+        console.error('Error details:', error.message, error.stack);
         // Environment not available or Supabase not available, use fallback data
     }
+    console.log('=== Quiz initializeQuizSupabase END ===');
 }
 
 async function loadQuizSettings() {
@@ -548,18 +615,30 @@ function shuffleArray(array) {
 
 async function loadQuizQuestions() {
     try {
+        console.log('loadQuizQuestions called, quizSupabase available:', !!quizSupabase);
+        
         if (!quizSupabase) {
+            console.log('Supabase not available, using fallback questions');
+            console.log('Current fallback questions count:', quizData.length);
             return; // Use fallback data already in quizData
         }
         
+        console.log('Fetching quiz questions from Supabase...');
         const { data, error } = await quizSupabase
             .from('quiz_questions')
             .select('*')
             .order('created_at', { ascending: true });
         
-        if (error) throw error;
+        console.log('Supabase quiz questions response:', { data, error });
+        
+        if (error) {
+            console.error('Error loading quiz questions from Supabase:', error);
+            throw error;
+        }
         
         if (data && data.length > 0) {
+            console.log(`Found ${data.length} questions in database, replacing fallback questions`);
+            
             // Transform database format to quiz format
             quizData = data.map(item => ({
                 question: item.question,
@@ -568,9 +647,23 @@ async function loadQuizQuestions() {
                 category: item.category,
                 explanation: item.explanation
             }));
+            
+            console.log('Quiz questions successfully loaded from database:', quizData.length, 'questions');
+            console.log('First question preview:', quizData[0]?.question);
+        } else {
+            console.log('No questions found in database, keeping fallback questions');
         }
+        
+        // Update total questions display
+        elements.totalQuestions.textContent = quizData.length;
+        
     } catch (error) {
-        // Use fallback data if database fails
+        console.error('Failed to load quiz questions from database:', error);
+        console.log('Using fallback questions due to error');
+        console.log('Fallback questions count:', quizData.length);
+        
+        // Update total questions display with fallback data
+        elements.totalQuestions.textContent = quizData.length;
     }
 }
 

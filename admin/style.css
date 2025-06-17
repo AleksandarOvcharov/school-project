@@ -303,6 +303,46 @@
 
 .questions-stats {
     color: #666;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.sync-btn {
+    padding: 8px 15px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sync-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.sync-btn:active {
+    transform: translateY(0);
+}
+
+.sync-btn i {
+    animation: none;
+}
+
+.sync-btn:hover i {
+    animation: spin 1s linear;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .questions-list {

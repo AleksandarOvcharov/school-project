@@ -607,6 +607,7 @@ window.removeDuplicateQuestions = removeDuplicateQuestions;
 window.changePassword = changePassword;
 window.showJsonFormat = showJsonFormat;
 window.copyJsonExample = copyJsonExample;
+window.syncQuestionsFromJson = syncQuestionsFromJson;
 
 // Wrapper function for async saveSettings
 function handleSaveSettings(section) {
@@ -706,6 +707,70 @@ function fallbackCopyText(text) {
         });
     } finally {
         document.body.removeChild(textArea);
+    }
+}
+
+// Function to sync questions from questions.json to Supabase
+async function syncQuestionsFromJson() {
+    try {
+        console.log('Starting sync of questions from questions.json to Supabase...');
+        
+        // Load questions from JSON file
+        const response = await fetch('questions/questions.json');
+        if (!response.ok) {
+            throw new Error(`Failed to load questions.json: ${response.status}`);
+        }
+        
+        const jsonQuestions = await response.json();
+        console.log(`Loaded ${jsonQuestions.length} questions from questions.json`);
+        
+        // Clear existing questions in database
+        const { error: deleteError } = await supabase
+            .from('quiz_questions')
+            .delete()
+            .neq('id', 0); // Delete all rows
+            
+        if (deleteError) {
+            console.error('Error clearing existing questions:', deleteError);
+        } else {
+            console.log('Cleared existing questions from database');
+        }
+        
+        // Insert new questions
+        const { data, error } = await supabase
+            .from('quiz_questions')
+            .insert(jsonQuestions);
+            
+        if (error) {
+            console.error('Error inserting questions:', error);
+            throw error;
+        }
+        
+        console.log(`Successfully synced ${jsonQuestions.length} questions to Supabase`);
+        
+        // Reload questions in admin panel
+        await loadQuestions();
+        
+        Swal.fire({
+            title: 'Успех!',
+            text: `Синхронизирани са ${jsonQuestions.length} въпроса от questions.json към Supabase`,
+            icon: 'success',
+            confirmButtonColor: '#007acc'
+        });
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Failed to sync questions from JSON:', error);
+        
+        Swal.fire({
+            title: 'Грешка!',
+            text: `Неуспешна синхронизация: ${error.message}`,
+            icon: 'error',
+            confirmButtonColor: '#007acc'
+        });
+        
+        return false;
     }
 }
 
