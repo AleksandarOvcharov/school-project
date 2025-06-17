@@ -24,10 +24,14 @@ async function initializeWithEnv() {
         // Initialize Supabase client using global manager
         supabase = await window.supabaseManager.initialize();
         
-        // Set admin credentials from environment
+        // Set admin credentials from environment (no fallbacks)
+        if (!window.ENV.ADMIN_USERNAME || !window.ENV.ADMIN_PASSWORD) {
+            throw new Error('ADMIN_USERNAME and ADMIN_PASSWORD must be set in .env file');
+        }
+        
         ADMIN_CREDENTIALS = {
-            username: window.ENV.ADMIN_USERNAME || 'admin',
-            password: window.ENV.ADMIN_PASSWORD || 'cyberedu2024'
+            username: window.ENV.ADMIN_USERNAME,
+            password: window.ENV.ADMIN_PASSWORD
         };
         
         console.log('ADMIN_CREDENTIALS set:', {
@@ -47,27 +51,15 @@ async function initializeWithEnv() {
     } catch (error) {
         console.error('Error in initializeWithEnv:', error);
         
-        // Fallback credentials if loading fails
-        ADMIN_CREDENTIALS = {
-            username: 'admin',
-            password: 'cyberedu2024'
-        };
-        
-        console.log('Using fallback credentials:', ADMIN_CREDENTIALS);
-        
-        // Continue with initialization
-        setupEventListeners();
-        loadHeaderAndFooter();
-        checkAuthStatus();
-        initializeSupabase();
-        setupRouting();
-        
         Swal.fire({
-            title: 'Предупреждение!',
-            text: 'Използват се fallback настройки за логин (admin/cyberedu2024).',
-            icon: 'warning',
+            title: 'Грешка в конфигурацията!',
+            text: 'Не може да се зареди .env файла. Моля, уверете се че файлът съществува и съдържа ADMIN_USERNAME и ADMIN_PASSWORD.',
+            icon: 'error',
             confirmButtonColor: '#007acc'
         });
+        
+        // Don't continue initialization without proper config
+        return;
     }
 }
 

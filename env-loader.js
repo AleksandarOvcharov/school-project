@@ -25,42 +25,60 @@ class EnvLoader {
                 return this.env;
                 
             } catch (serverError) {
-                console.log('Local server not available, using fallback configuration...');
+                console.log('Local server not available, trying to load .env file directly...');
                 
-                // Fallback configuration for production/offline mode
-                this.env = {
-                    SUPABASE_URL: '',
-                    SUPABASE_ANON_KEY: '',
-                    ADMIN_USERNAME: 'admin',
-                    ADMIN_PASSWORD: 'cyberedu2024'
-                };
+                // Try to load .env file directly
+                try {
+                    const envResponse = await fetch('/.env');
+                    if (envResponse.ok) {
+                        const envText = await envResponse.text();
+                        this.env = this.parseEnvFile(envText);
+                        this.loaded = true;
+                        window.ENV = this.env;
+                        console.log('Environment variables loaded from .env file');
+                        return this.env;
+                    }
+                } catch (envError) {
+                    console.log('Could not load .env file directly');
+                }
                 
-                this.loaded = true;
-                
-                // Make environment variables globally available
-                window.ENV = this.env;
-                
-                console.log('Using fallback configuration (no database connection)');
-                return this.env;
+                // If .env file is not accessible, throw error
+                throw new Error('No .env file available and no local server');
             }
             
         } catch (error) {
             console.error('Failed to load environment variables:', error);
-            
-            // Final fallback
-            this.env = {
-                SUPABASE_URL: '',
-                SUPABASE_ANON_KEY: '',
-                ADMIN_USERNAME: 'admin',
-                ADMIN_PASSWORD: 'cyberedu2024'
-            };
-            
-            this.loaded = true;
-            window.ENV = this.env;
-            
-            console.log('Using minimal fallback configuration');
-            return this.env;
+            throw new Error('Environment configuration is required but not available');
         }
+    }
+
+    parseEnvFile(envText) {
+        const env = {};
+        const lines = envText.split('\n');
+        
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            
+            // Skip empty lines and comments
+            if (!trimmedLine || trimmedLine.startsWith('#')) {
+                continue;
+            }
+            
+            const [key, ...valueParts] = trimmedLine.split('=');
+            if (key && valueParts.length > 0) {
+                let value = valueParts.join('=').trim();
+                
+                // Remove quotes if present
+                if ((value.startsWith('"') && value.endsWith('"')) || 
+                    (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.slice(1, -1);
+                }
+                
+                env[key.trim()] = value;
+            }
+        }
+        
+        return env;
     }
 
     get(key, defaultValue = '') {
