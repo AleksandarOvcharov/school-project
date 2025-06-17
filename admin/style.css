@@ -137,6 +137,11 @@
     background: #c82333;
 }
 
+/* GitHub button specific hover effect */
+.logout-btn[style*="background: #333"]:hover {
+    background: #24292e !important;
+}
+
 /* Main Dashboard Grid */
 .main-dashboard {
     padding: 20px 0;
@@ -909,6 +914,11 @@
         text-align: center;
     }
 
+    .header-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
     .dashboard-grid {
         grid-template-columns: 1fr;
         gap: 20px;
@@ -951,8 +961,6 @@
     .tab-btn.active {
         order: -1;
     }
-
-
 }
 
 /* JSON Writer Styles */
@@ -961,8 +969,6 @@
     margin: 0 auto;
     padding: 0 20px;
 }
-
-
 
 .json-writer-header {
     text-align: center;
@@ -1792,8 +1798,9 @@
 }
 
 .locked-btn:active {
-    transform: translateY(0) !important;
-    box-shadow: 0 2px 6px rgba(108, 117, 125, 0.4) !important;
+    transform: scale(0.98);
 }
+
+
 
  
