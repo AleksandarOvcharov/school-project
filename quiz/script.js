@@ -198,7 +198,6 @@ async function loadComponent(elementId, componentPath) {
         
         return true;
     } catch (error) {
-        console.error('Error loading component:', error);
         return false;
     }
 }
@@ -238,7 +237,6 @@ async function loadSiteTitleFromSupabase() {
             return data.setting_value.siteTitle;
         }
     } catch (error) {
-        console.error('Error loading site title from Supabase:', error);
     }
     return null;
 }
@@ -295,10 +293,8 @@ let lastSettingsHash = null;
 // Add function to reload quiz settings and update UI from database
 async function reloadQuizSettingsFromDB() {
     try {
-        console.log('Checking for quiz settings updates from database...');
         
         if (!quizSupabase) {
-            console.log('Supabase not available, skipping database check');
             return;
         }
         
@@ -310,7 +306,6 @@ async function reloadQuizSettingsFromDB() {
             .single();
 
         if (settingsError) {
-            console.log('No settings found in database or error:', settingsError.message);
         }
 
         // Also fetch latest questions to get current count
@@ -319,8 +314,6 @@ async function reloadQuizSettingsFromDB() {
             .select('*')
             .order('created_at', { ascending: true });
 
-        console.log('Current quizData length:', quizData.length);
-        console.log('Database questions length:', questionsData ? questionsData.length : 'no data');
 
         let settingsChanged = false;
         let questionsChanged = false;
@@ -330,7 +323,6 @@ async function reloadQuizSettingsFromDB() {
             const newSettingsHash = JSON.stringify(settingsData.setting_value);
             
             if (lastSettingsHash && lastSettingsHash !== newSettingsHash) {
-                console.log('Settings changed in database, updating...');
                 
                 // Update quiz settings
                 const settings = settingsData.setting_value;
@@ -341,10 +333,11 @@ async function reloadQuizSettingsFromDB() {
                 if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
                 
                 settingsChanged = true;
-                console.log('Quiz settings updated from database:', settings);
+                
+                // Update the settings display
+                updateQuizSettingsDisplay();
             } else if (!lastSettingsHash) {
                 // First time loading, force update
-                console.log('First time loading settings, forcing update');
                 settingsChanged = true;
             }
             
@@ -354,7 +347,6 @@ async function reloadQuizSettingsFromDB() {
         // Check if questions changed (new count or first load)
         if (!questionsError && questionsData) {
             if (questionsData.length !== quizData.length || quizData.length === 0) {
-                console.log(`Questions count changed: ${quizData.length} -> ${questionsData.length}`);
                 
                 // Update questions data
                 quizData = questionsData.map(item => ({
@@ -366,19 +358,16 @@ async function reloadQuizSettingsFromDB() {
                 }));
                 
                 questionsChanged = true;
-                console.log('Questions data updated, new count:', quizData.length);
             }
         }
 
         // Update UI if anything changed or if this is the first load
         if (settingsChanged || questionsChanged) {
-            console.log('Updating UI - settingsChanged:', settingsChanged, 'questionsChanged:', questionsChanged);
             // Quiz info display removed
             
             // Always update total questions display when questions change
             if (questionsChanged) {
                 elements.totalQuestions.textContent = quizData.length;
-                console.log('Updated totalQuestions element to:', quizData.length);
             }
             
             // If quiz hasn't started yet, apply changes
@@ -386,14 +375,11 @@ async function reloadQuizSettingsFromDB() {
                 // Apply randomization if setting changed
                 if (quizSettings.randomizeQuestions) {
                     shuffleArray(quizData);
-                    console.log('Applied randomization to questions');
                 }
             }
         } else {
-            console.log('No changes detected in settings or questions');
         }
     } catch (error) {
-        console.error('Error checking settings from database:', error);
     }
 }
 
@@ -405,7 +391,6 @@ function startSettingsMonitoring() {
     
     // Check every 5 seconds for settings changes
     settingsCheckInterval = setInterval(reloadQuizSettingsFromDB, 5000);
-    console.log('Started monitoring quiz settings from database');
 }
 
 // Stop periodic checking
@@ -413,7 +398,6 @@ function stopSettingsMonitoring() {
     if (settingsCheckInterval) {
         clearInterval(settingsCheckInterval);
         settingsCheckInterval = null;
-        console.log('Stopped monitoring quiz settings');
     }
 }
 
@@ -425,34 +409,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadComponent('footer-component', basePath + 'footer.html');
     
     // Wait for env-loader to complete
-    console.log('Waiting for env-loader to complete...');
     let envWaitAttempts = 0;
     const maxEnvWaitAttempts = 30; // Wait up to 3 seconds
     
     while (!window.supabaseManager && envWaitAttempts < maxEnvWaitAttempts) {
         await new Promise(resolve => setTimeout(resolve, 100));
         envWaitAttempts++;
-        console.log(`Waiting for env-loader... attempt ${envWaitAttempts}/${maxEnvWaitAttempts}`);
     }
     
     // Initialize Supabase for quiz
-    console.log('About to call initializeQuizSupabase()');
-    console.log('initializeQuizSupabase function exists:', typeof initializeQuizSupabase);
     try {
         await initializeQuizSupabase();
-        console.log('initializeQuizSupabase() completed successfully');
     } catch (error) {
-        console.error('Error in initializeQuizSupabase():', error);
-        console.log('initializeQuizSupabase() completed with error');
     }
     
     // Apply saved title after header is loaded
     await applySavedSiteTitle();
     
     // Load admin settings first
-    console.log('Loading initial quiz settings...');
     await loadQuizSettings();
-    console.log('Initial settings loaded:', quizSettings);
     
     // Load questions from database
     await loadQuizQuestions();
@@ -466,13 +441,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     
         // Start monitoring settings changes from database
     if (quizSupabase) {
-        console.log('Supabase available, loading settings from database...');
         // Do initial check for any changes (this will update everything)
         await reloadQuizSettingsFromDB();
-        console.log('Settings loaded. Current quizSettings:', quizSettings);
         startSettingsMonitoring();
     } else {
-        console.log('Supabase not available, using default settings');
         // If no Supabase, still update UI with current data
         elements.totalQuestions.textContent = quizData.length;
         // Quiz info display removed
@@ -483,15 +455,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 
 async function initializeQuizSupabase() {
-    console.log('=== Quiz initializeQuizSupabase START ===');
     try {
-        console.log('Quiz initializeQuizSupabase called');
-        console.log('window.supabaseManager available:', !!window.supabaseManager);
-        console.log('window.envLoader available:', !!window.envLoader);
         
         // Wait for env-loader to be ready if not yet available
         if (!window.supabaseManager && window.envLoader) {
-            console.log('Waiting for env-loader to initialize supabaseManager...');
             
             // Wait a bit for env-loader to set up supabaseManager
             let attempts = 0;
@@ -500,18 +467,14 @@ async function initializeQuizSupabase() {
             while (!window.supabaseManager && attempts < maxAttempts) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 attempts++;
-                console.log(`Waiting for supabaseManager... attempt ${attempts}/${maxAttempts}`);
             }
         }
         
         // Use global Supabase manager to prevent multiple instances
         if (window.supabaseManager) {
-            console.log('Attempting to initialize Supabase via supabaseManager...');
             quizSupabase = await window.supabaseManager.initialize();
-            console.log('Quiz Supabase initialization result:', !!quizSupabase);
             
             if (quizSupabase) {
-                console.log('Successfully initialized Supabase in quiz');
                 
                 // Test the connection with a simple query
                 try {
@@ -521,46 +484,34 @@ async function initializeQuizSupabase() {
                         .limit(1);
                     
                     if (error) {
-                        console.error('Supabase connection test failed:', error);
                     } else {
-                        console.log('Supabase connection test successful');
                     }
                 } catch (testError) {
-                    console.error('Supabase connection test error:', testError);
                 }
             } else {
-                console.warn('Supabase manager returned null/undefined');
             }
         } else {
-            console.warn('window.supabaseManager not available after waiting');
         }
     } catch (error) {
-        console.error('Failed to initialize Supabase in quiz:', error);
-        console.error('Error details:', error.message, error.stack);
         // Environment not available or Supabase not available, use fallback data
     }
-    console.log('=== Quiz initializeQuizSupabase END ===');
 }
 
 async function loadQuizSettings() {
     try {
-        console.log('loadQuizSettings called, quizSupabase available:', !!quizSupabase);
         let settingsLoaded = false;
         
         // Try to load from Supabase first
         if (quizSupabase) {
-            console.log('Fetching settings from Supabase...');
             const { data, error } = await quizSupabase
                 .from('quiz_settings')
                 .select('setting_value')
                 .eq('setting_key', 'quiz_settings')
                 .single();
 
-            console.log('Supabase response:', { data, error });
 
             if (!error && data && data.setting_value) {
                 const settings = data.setting_value;
-                console.log('Found settings in database:', settings);
                 
                 if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
                 if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
@@ -568,40 +519,34 @@ async function loadQuizSettings() {
                 if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
                 
                 settingsLoaded = true;
-                console.log('Quiz settings loaded from Supabase:', settings);
-                console.log('Updated quizSettings object:', quizSettings);
                 
                 // Initialize settings hash for change detection
                 lastSettingsHash = JSON.stringify(settings);
-                console.log('Initialized lastSettingsHash:', lastSettingsHash);
             } else {
-                console.log('No settings found in Supabase or error occurred');
             }
         }
         
         // Fallback to localStorage if Supabase failed
         if (!settingsLoaded) {
-            console.log('Trying localStorage fallback...');
             const savedSettings = localStorage.getItem('admin_settings_quiz');
             
             if (savedSettings) {
                 const settings = JSON.parse(savedSettings);
-                console.log('Found settings in localStorage:', settings);
                 
                 if (settings.timeLimit) quizSettings.timeLimit = parseInt(settings.timeLimit);
                 if (settings.passingScore) quizSettings.passingScore = parseInt(settings.passingScore);
                 if (settings.hasOwnProperty('showExplanations')) quizSettings.showExplanations = settings.showExplanations;
                 if (settings.hasOwnProperty('randomizeQuestions')) quizSettings.randomizeQuestions = settings.randomizeQuestions;
                 
-                console.log('Quiz settings loaded from localStorage:', settings);
             } else {
-                console.log('No settings found in localStorage either, using defaults');
             }
         }
     } catch (error) {
-        console.error('Error loading quiz settings:', error);
         // Use default settings if error
     }
+    
+    // Update the display after loading settings
+    updateQuizSettingsDisplay();
 }
 
 function shuffleArray(array) {
@@ -611,33 +556,56 @@ function shuffleArray(array) {
     }
 }
 
+function updateQuizSettingsDisplay() {
+    try {
+        // Update time limit
+        const timeLimitElement = document.getElementById('display-time-limit');
+        if (timeLimitElement) {
+            timeLimitElement.textContent = `${quizSettings.timeLimit} минути`;
+        }
+        
+        // Update passing score
+        const passingScoreElement = document.getElementById('display-passing-score');
+        if (passingScoreElement) {
+            passingScoreElement.textContent = `${quizSettings.passingScore}%`;
+        }
+        
+        // Update explanations setting
+        const explanationsElement = document.getElementById('display-explanations');
+        if (explanationsElement) {
+            explanationsElement.textContent = quizSettings.showExplanations ? 'Показват се' : 'Скрити';
+        }
+        
+        // Update randomize setting
+        const randomizeElement = document.getElementById('display-randomize');
+        if (randomizeElement) {
+            randomizeElement.textContent = quizSettings.randomizeQuestions ? 'Разбъркани' : 'По ред';
+        }
+        
+    } catch (error) {
+    }
+}
+
 // updateQuizInfoDisplay function removed
 
 async function loadQuizQuestions() {
     try {
-        console.log('loadQuizQuestions called, quizSupabase available:', !!quizSupabase);
         
         if (!quizSupabase) {
-            console.log('Supabase not available, using fallback questions');
-            console.log('Current fallback questions count:', quizData.length);
             return; // Use fallback data already in quizData
         }
         
-        console.log('Fetching quiz questions from Supabase...');
         const { data, error } = await quizSupabase
             .from('quiz_questions')
             .select('*')
             .order('created_at', { ascending: true });
         
-        console.log('Supabase quiz questions response:', { data, error });
         
         if (error) {
-            console.error('Error loading quiz questions from Supabase:', error);
             throw error;
         }
         
         if (data && data.length > 0) {
-            console.log(`Found ${data.length} questions in database, replacing fallback questions`);
             
             // Transform database format to quiz format
             quizData = data.map(item => ({
@@ -648,19 +616,13 @@ async function loadQuizQuestions() {
                 explanation: item.explanation
             }));
             
-            console.log('Quiz questions successfully loaded from database:', quizData.length, 'questions');
-            console.log('First question preview:', quizData[0]?.question);
         } else {
-            console.log('No questions found in database, keeping fallback questions');
         }
         
         // Update total questions display
         elements.totalQuestions.textContent = quizData.length;
         
     } catch (error) {
-        console.error('Failed to load quiz questions from database:', error);
-        console.log('Using fallback questions due to error');
-        console.log('Fallback questions count:', quizData.length);
         
         // Update total questions display with fallback data
         elements.totalQuestions.textContent = quizData.length;
@@ -683,18 +645,12 @@ function startQuiz() {
     userAnswers = [];
     
     // Debug: Show current quiz settings when starting
-    console.log('Starting quiz with settings:', quizSettings);
-    console.log('Time limit (minutes):', quizSettings.timeLimit);
-    console.log('Passing score (%):', quizSettings.passingScore);
-    console.log('Show explanations:', quizSettings.showExplanations);
-    console.log('Randomize questions:', quizSettings.randomizeQuestions);
     
     // Stop monitoring settings during quiz
     stopSettingsMonitoring();
     
     // Initialize timer
     timeRemaining = quizSettings.timeLimit * 60; // Convert minutes to seconds
-    console.log('Timer set to:', timeRemaining, 'seconds');
     startTimer();
     
     showSection('questions');

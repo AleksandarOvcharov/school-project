@@ -7,6 +7,8 @@
     <link rel="icon" type="image/png" href="../public/favicon.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- Supabase Client -->
@@ -35,6 +37,32 @@
                         <li><strong>Правни аспекти</strong> и последици</li>
                         <li><strong>Дигитална етика</strong> и отговорно поведение онлайн</li>
                     </ul>
+
+                    <div class="quiz-settings-display">
+                        <h4>Настройки на теста:</h4>
+                        <div class="settings-grid">
+                            <div class="setting-display">
+                                <i class="fas fa-clock"></i>
+                                <span class="setting-label">Време за решаване:</span>
+                                <span class="setting-value" id="display-time-limit">15 минути</span>
+                            </div>
+                            <div class="setting-display">
+                                <i class="fas fa-chart-line"></i>
+                                <span class="setting-label">Минимален резултат:</span>
+                                <span class="setting-value" id="display-passing-score">70%</span>
+                            </div>
+                            <div class="setting-display">
+                                <i class="fas fa-lightbulb"></i>
+                                <span class="setting-label">Обяснения:</span>
+                                <span class="setting-value" id="display-explanations">Показват се</span>
+                            </div>
+                            <div class="setting-display">
+                                <i class="fas fa-random"></i>
+                                <span class="setting-label">Въпроси:</span>
+                                <span class="setting-value" id="display-randomize">По ред</span>
+                            </div>
+                        </div>
+                    </div>
 
                     <button id="start-quiz" class="btn">Започнете теста</button>
                 </div>
