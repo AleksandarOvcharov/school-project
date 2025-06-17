@@ -32,7 +32,7 @@ class EnvLoader {
                     SUPABASE_URL: '',
                     SUPABASE_ANON_KEY: '',
                     ADMIN_USERNAME: 'admin',
-                    ADMIN_PASSWORD: 'password123'
+                    ADMIN_PASSWORD: 'cyberedu2024'
                 };
                 
                 this.loaded = true;
@@ -52,7 +52,7 @@ class EnvLoader {
                 SUPABASE_URL: '',
                 SUPABASE_ANON_KEY: '',
                 ADMIN_USERNAME: 'admin',
-                ADMIN_PASSWORD: 'password123'
+                ADMIN_PASSWORD: 'cyberedu2024'
             };
             
             this.loaded = true;

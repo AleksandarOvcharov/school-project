@@ -16,14 +16,24 @@ async function initializeWithEnv() {
             throw new Error('Environment variables not loaded');
         }
 
+        console.log('Admin credentials loaded:', {
+            username: window.ENV.ADMIN_USERNAME,
+            hasPassword: !!window.ENV.ADMIN_PASSWORD
+        });
+
         // Initialize Supabase client using global manager
         supabase = await window.supabaseManager.initialize();
         
         // Set admin credentials from environment
         ADMIN_CREDENTIALS = {
-            username: window.ENV.ADMIN_USERNAME,
-            password: window.ENV.ADMIN_PASSWORD
+            username: window.ENV.ADMIN_USERNAME || 'admin',
+            password: window.ENV.ADMIN_PASSWORD || 'cyberedu2024'
         };
+        
+        console.log('ADMIN_CREDENTIALS set:', {
+            username: ADMIN_CREDENTIALS.username,
+            hasPassword: !!ADMIN_CREDENTIALS.password
+        });
         
         // Continue with initialization
         setupEventListeners();
@@ -35,10 +45,27 @@ async function initializeWithEnv() {
         setupRouting();
         
     } catch (error) {
+        console.error('Error in initializeWithEnv:', error);
+        
+        // Fallback credentials if loading fails
+        ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'cyberedu2024'
+        };
+        
+        console.log('Using fallback credentials:', ADMIN_CREDENTIALS);
+        
+        // Continue with initialization
+        setupEventListeners();
+        loadHeaderAndFooter();
+        checkAuthStatus();
+        initializeSupabase();
+        setupRouting();
+        
         Swal.fire({
-            title: 'Грешка в конфигурацията!',
-            text: 'Моля, уверете се че конфигурацията е правилно настроена.',
-            icon: 'error',
+            title: 'Предупреждение!',
+            text: 'Използват се fallback настройки за логин (admin/cyberedu2024).',
+            icon: 'warning',
             confirmButtonColor: '#007acc'
         });
     }
@@ -431,6 +458,7 @@ async function handleLogin(e) {
     
     // Check if credentials are loaded
     if (!ADMIN_CREDENTIALS) {
+        console.error('ADMIN_CREDENTIALS not loaded');
         Swal.fire({
             title: 'Грешка!',
             text: 'Системата все още се зарежда. Моля, изчакайте.',
@@ -439,6 +467,13 @@ async function handleLogin(e) {
         });
         return;
     }
+    
+    console.log('Login attempt:', {
+        username: username,
+        expectedUsername: ADMIN_CREDENTIALS.username,
+        hasPassword: !!password,
+        expectedPassword: ADMIN_CREDENTIALS.password
+    });
     
     // Show loading state
     const originalText = loginBtn.textContent;
