@@ -7,6 +7,8 @@
     <link rel="icon" type="image/png" href="../public/favicon.png">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Environment Loader -->
@@ -27,6 +29,7 @@
             <div class="game-header">
                 <h3>Чат симулация (бета)</h3>
                 <div class="game-status">
+                    <div class="scenario">Сценарий: <span id="scenario-number">1</span></div>
                     <div class="score">Точки: <span id="score">0</span></div>
                 </div>
             </div>
@@ -37,14 +40,14 @@
 
             <div class="character-avatars">
                 <div class="avatar bully-avatar" id="bully-avatar">
-                    <div class="avatar-image">😠</div>
+                    <div class="avatar-image"><i class="fas fa-user-times"></i></div>
                     <div class="avatar-name">Непознат</div>
-                    <div class="avatar-status" id="bully-status">пише...</div>
+                    <div class="avatar-status" id="bully-status">офлайн</div>
                 </div>
                 <div class="avatar player-avatar" id="player-avatar">
-                    <div class="avatar-image">😊</div>
+                    <div class="avatar-image"><i class="fas fa-user-shield"></i></div>
                     <div class="avatar-name">Вие</div>
-                    <div class="avatar-status" id="player-status">чака...</div>
+                    <div class="avatar-status" id="player-status">готов/а</div>
                 </div>
             </div>
 

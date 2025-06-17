@@ -150,22 +150,28 @@ class CyberbullyingGame {
         const bullyVariant = scenario.bullyMessages[Math.floor(Math.random() * scenario.bullyMessages.length)];
         const escalationVariant = scenario.escalation[Math.floor(Math.random() * scenario.escalation.length)];
         
-        // Send initial messages
-        this.sendBullyMessage(bullyVariant[0], () => {
-            setTimeout(() => {
-                this.sendBullyMessage(bullyVariant[1], () => {
-                    setTimeout(() => {
-                        this.sendBullyMessage(escalationVariant[0], () => {
-                            setTimeout(() => {
-                                this.sendBullyMessage(escalationVariant[1], () => {
-                                    this.showChoices(scenario.choices);
-                                });
-                            }, 1500);
-                        });
-                    }, 2000);
+        // Send messages with delays
+        let messageIndex = 0;
+        const messages = [
+            bullyVariant[0],
+            bullyVariant[1], 
+            escalationVariant[0],
+            escalationVariant[1]
+        ];
+        
+        const sendNextMessage = () => {
+            if (messageIndex < messages.length) {
+                this.sendBullyMessage(messages[messageIndex], () => {
+                    messageIndex++;
+                    setTimeout(sendNextMessage, 1500);
                 });
-            }, 1500);
-        });
+            } else {
+                // All messages sent, show choices
+                this.showChoices(scenario.choices);
+            }
+        };
+        
+        sendNextMessage();
     }
 
     sendBullyMessage(message, callback) {
@@ -190,6 +196,11 @@ class CyberbullyingGame {
         
         const choicesContainer = document.getElementById('choices-container');
         const choicesDiv = document.getElementById('choices');
+        
+        if (!choicesContainer || !choicesDiv) {
+            console.error('Choices containers not found!');
+            return;
+        }
         
         choicesDiv.innerHTML = '';
         
@@ -268,6 +279,10 @@ class CyberbullyingGame {
 
     addMessage(text, sender) {
         const messagesContainer = document.getElementById('chat-messages');
+        if (!messagesContainer) {
+            console.error('Chat messages container not found!');
+            return;
+        }
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}`;
         messageDiv.textContent = text;
@@ -368,4 +383,4 @@ class CyberbullyingGame {
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
     const game = new CyberbullyingGame();
-}); 
+});
