@@ -561,27 +561,51 @@ function updateQuizSettingsDisplay() {
         // Update time limit
         const timeLimitElement = document.getElementById('display-time-limit');
         if (timeLimitElement) {
+            timeLimitElement.classList.remove('loading');
             timeLimitElement.textContent = `${quizSettings.timeLimit} минути`;
         }
         
         // Update passing score
         const passingScoreElement = document.getElementById('display-passing-score');
         if (passingScoreElement) {
+            passingScoreElement.classList.remove('loading');
             passingScoreElement.textContent = `${quizSettings.passingScore}%`;
         }
         
         // Update explanations setting
         const explanationsElement = document.getElementById('display-explanations');
         if (explanationsElement) {
+            explanationsElement.classList.remove('loading');
             explanationsElement.textContent = quizSettings.showExplanations ? 'Показват се' : 'Скрити';
         }
         
         // Update randomize setting
         const randomizeElement = document.getElementById('display-randomize');
         if (randomizeElement) {
+            randomizeElement.classList.remove('loading');
             randomizeElement.textContent = quizSettings.randomizeQuestions ? 'Разбъркани' : 'По ред';
         }
         
+    } catch (error) {
+    }
+}
+
+function showQuizSettingsLoading() {
+    try {
+        const elements = [
+            'display-time-limit',
+            'display-passing-score', 
+            'display-explanations',
+            'display-randomize'
+        ];
+        
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.classList.add('loading');
+                element.innerHTML = '<div class="spinner"><div class="double-bounce1"></div><div class="double-bounce2"></div></div>';
+            }
+        });
     } catch (error) {
     }
 }
