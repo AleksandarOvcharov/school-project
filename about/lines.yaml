@@ -1,12 +1,12 @@
 # Статистика за редове код по технологии
 technologies:
-  html: 2281
-  css: 3864
-  js: 4466
+  html: 2333
+  css: 4056
+  js: 4732
   xml: 102
   sql: 83
   toml: 82
-  json: 950
+  json: 986
   yaml: 17
 
 # Метаданни
