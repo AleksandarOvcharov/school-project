@@ -381,10 +381,6 @@ function showProfileSettings() {
     alert('Функционалността за профил ще бъде добавена скоро!');
 }
 
-function showNotifications() {
-    alert('Функционалността за уведомления ще бъде добавена скоро!');
-}
-
 function showSettings() {
     alert('Функционалността за настройки ще бъде добавена скоро!');
 }
@@ -399,6 +395,5 @@ function handleLogout() {
 // Make profile functions globally available
 window.toggleProfileDropdown = toggleProfileDropdown;
 window.showProfileSettings = showProfileSettings;
-window.showNotifications = showNotifications;
 window.showSettings = showSettings;
 window.handleLogout = handleLogout; 
