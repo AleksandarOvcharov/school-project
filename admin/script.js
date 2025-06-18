@@ -16,10 +16,7 @@ async function initializeWithEnv() {
             throw new Error('Environment variables not loaded');
         }
 
-        console.log('Admin credentials loaded:', {
-            username: window.ENV.ADMIN_USERNAME,
-            hasPassword: !!window.ENV.ADMIN_PASSWORD
-        });
+        // Admin credentials loaded
 
         // Initialize Supabase client using global manager
         supabase = await window.supabaseManager.initialize();
@@ -34,10 +31,7 @@ async function initializeWithEnv() {
             password: window.ENV.ADMIN_PASSWORD
         };
         
-        console.log('ADMIN_CREDENTIALS set:', {
-            username: ADMIN_CREDENTIALS.username,
-            hasPassword: !!ADMIN_CREDENTIALS.password
-        });
+        // Admin credentials configured
         
         // Continue with initialization
         setupEventListeners();
@@ -49,8 +43,6 @@ async function initializeWithEnv() {
         setupRouting();
         
     } catch (error) {
-        console.error('Error in initializeWithEnv:', error);
-        
         Swal.fire({
             title: 'Грешка в конфигурацията!',
             text: 'Не може да се зареди .env файла. Моля, уверете се че файлът съществува и съдържа ADMIN_USERNAME и ADMIN_PASSWORD.',
@@ -128,7 +120,7 @@ async function loadSiteTitleFromSupabase() {
             return data.setting_value.siteTitle;
         }
     } catch (error) {
-        console.error('Error loading site title from Supabase:', error);
+        // Error loading site title from Supabase
     }
     return null;
 }
@@ -450,7 +442,6 @@ async function handleLogin(e) {
     
     // Check if credentials are loaded
     if (!ADMIN_CREDENTIALS) {
-        console.error('ADMIN_CREDENTIALS not loaded');
         Swal.fire({
             title: 'Грешка!',
             text: 'Системата все още се зарежда. Моля, изчакайте.',
@@ -460,12 +451,7 @@ async function handleLogin(e) {
         return;
     }
     
-    console.log('Login attempt:', {
-        username: username,
-        expectedUsername: ADMIN_CREDENTIALS.username,
-        hasPassword: !!password,
-        expectedPassword: ADMIN_CREDENTIALS.password
-    });
+    // Login attempt validation
     
     // Show loading state
     const originalText = loginBtn.textContent;
@@ -583,7 +569,6 @@ async function initializeSupabase() {
     try {
         // Only proceed if supabase is available
         if (!supabase) {
-            console.log('Supabase not available, skipping initialization');
             return;
         }
         
@@ -604,7 +589,6 @@ async function initializeSupabase() {
         }
     } catch (error) {
         // Fallback to local storage if Supabase is not configured - silent fallback
-        console.log('Supabase initialization failed, using fallback mode');
     }
 }
 
@@ -646,7 +630,7 @@ window.syncQuestionsFromJson = syncQuestionsFromJson;
 // Wrapper function for async saveSettings
 function handleSaveSettings(section) {
     saveSettings(section, event).catch(error => {
-        console.error('Error in handleSaveSettings:', error);
+        // Error in handleSaveSettings
     });
 }
 
@@ -731,7 +715,6 @@ function fallbackCopyText(text) {
             }, 2000);
         }
     } catch (err) {
-        console.error('Fallback copy failed:', err);
         // Show error message
         Swal.fire({
             title: 'Грешка',
@@ -751,7 +734,7 @@ async function syncQuestionsFromJson() {
             throw new Error('Supabase не е налично. Не може да се синхронизира с базата данни.');
         }
         
-        console.log('Starting sync of questions from questions.json to Supabase...');
+        // Starting sync of questions from questions.json to Supabase
         
         // Load questions from JSON file
         const response = await fetch('questions/questions.json');
@@ -760,7 +743,6 @@ async function syncQuestionsFromJson() {
         }
         
         const jsonQuestions = await response.json();
-        console.log(`Loaded ${jsonQuestions.length} questions from questions.json`);
         
         // Clear existing questions in database
         const { error: deleteError } = await supabase
@@ -769,9 +751,7 @@ async function syncQuestionsFromJson() {
             .neq('id', 0); // Delete all rows
             
         if (deleteError) {
-            console.error('Error clearing existing questions:', deleteError);
-        } else {
-            console.log('Cleared existing questions from database');
+            // Error clearing existing questions
         }
         
         // Insert new questions
@@ -780,11 +760,8 @@ async function syncQuestionsFromJson() {
             .insert(jsonQuestions);
             
         if (error) {
-            console.error('Error inserting questions:', error);
             throw error;
         }
-        
-        console.log(`Successfully synced ${jsonQuestions.length} questions to Supabase`);
         
         // Reload questions in admin panel
         await loadQuestions();
@@ -799,8 +776,6 @@ async function syncQuestionsFromJson() {
         return true;
         
     } catch (error) {
-        console.error('Failed to sync questions from JSON:', error);
-        
         Swal.fire({
             title: 'Грешка!',
             text: `Неуспешна синхронизация: ${error.message}`,
@@ -939,7 +914,6 @@ async function seedInitialQuestions() {
     
     try {
         if (!supabase) {
-            console.log('Supabase not available, skipping initial questions seeding');
             return;
         }
         
@@ -1076,7 +1050,6 @@ async function handleQuestionSubmit(e) {
         switchTab('questions');
         
     } catch (error) {
-        console.error('Error saving question:', error);
         Swal.fire({
             title: 'Грешка!',
             text: 'Възникна грешка при запазване на въпроса.',
@@ -1318,8 +1291,6 @@ async function saveSettings(section, event = null) {
         });
         
     } catch (error) {
-        console.error('Error saving settings:', error);
-        
         // Fallback to localStorage
         localStorage.setItem(`admin_settings_${section}`, JSON.stringify(settings));
         
@@ -1371,7 +1342,6 @@ async function saveSettingsToSupabase(settingKey, settingValue) {
         }
 
     } catch (error) {
-        console.error('Supabase settings error:', error);
         throw error;
     }
 }
@@ -1392,7 +1362,6 @@ async function loadSettingsFromSupabase(settingKey) {
 
         return data ? data.setting_value : null;
     } catch (error) {
-        console.error('Error loading settings from Supabase:', error);
         return null;
     }
 }
@@ -1599,7 +1568,6 @@ async function removeDuplicateQuestions() {
             }
 
         } catch (error) {
-            console.error('Error removing duplicates:', error);
             Swal.fire({
                 title: 'Грешка!',
                 text: 'Възникна грешка при премахването на дублираните въпроси.',
@@ -1849,8 +1817,6 @@ async function loadSettings() {
         await applySiteTitleSettings();
         
     } catch (error) {
-        console.error('Error loading settings from Supabase, falling back to localStorage:', error);
-        
         // Fallback to localStorage
     const siteSettings = JSON.parse(localStorage.getItem('admin_settings_site') || '{}');
     const quizSettings = JSON.parse(localStorage.getItem('admin_settings_quiz') || '{}');
@@ -1883,7 +1849,7 @@ async function applySiteTitleSettings() {
             return;
         }
     } catch (error) {
-        console.error('Error loading site settings from Supabase:', error);
+        // Error loading site settings
     }
     
     // Fallback to localStorage
@@ -1966,7 +1932,6 @@ async function initializeSettings() {
     try {
         // Only proceed if supabase is available
         if (!supabase) {
-            console.log('Supabase not available, skipping settings initialization');
             return;
         }
         
@@ -1977,7 +1942,6 @@ async function initializeSettings() {
             .limit(1);
 
         if (checkError) {
-            console.log('Settings table might not exist, skipping initialization');
             return;
         }
 
@@ -2017,12 +1981,11 @@ async function initializeSettings() {
                 await supabase
                     .from('quiz_settings')
                     .insert([setting]);
-                console.log(`Initialized ${setting.setting_key}`);
             }
         }
 
     } catch (error) {
-        console.error('Error initializing settings:', error);
+        // Error initializing settings
     }
 }
 
@@ -2376,7 +2339,6 @@ async function saveJsonQuestions() {
                 }
                 savedCount++;
             } catch (error) {
-                console.error('Error saving question:', error);
                 errorCount++;
             }
         }

@@ -11,11 +11,11 @@ class EnvLoader {
             try {
                 const response = await fetch('/api/config');
                 if (response.ok) {
-                    this.env = await response.json();
-                    this.loaded = true;
-                    window.ENV = this.env;
-                    console.log('Environment variables loaded from local Node.js server');
-                    return this.env;
+                this.env = await response.json();
+                this.loaded = true;
+                window.ENV = this.env;
+                console.log('Environment variables loaded from local Node.js server');
+                return this.env;
                 }
             } catch (serverError) {
                 console.log('Local server not available, trying Netlify function...');
@@ -41,10 +41,10 @@ class EnvLoader {
                 if (envResponse.ok) {
                     const envText = await envResponse.text();
                     this.env = this.parseEnvFile(envText);
-                    this.loaded = true;
-                    window.ENV = this.env;
+                this.loaded = true;
+                window.ENV = this.env;
                     console.log('Environment variables loaded from .env file');
-                    return this.env;
+                return this.env;
                 }
             } catch (envError) {
                 console.log('Could not load .env file directly');

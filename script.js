@@ -27,37 +27,32 @@ function setActiveNav() {
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('nav a');
     
+    // Remove active class from all links first
+    navLinks.forEach(link => link.classList.remove('active'));
+    
+    // Set active based on current page
+    let activeSet = false;
     navLinks.forEach(link => {
-        link.classList.remove('active');
         const href = link.getAttribute('href');
         
-        if (href) {
-            // Normalize paths for comparison
-            let normalizedHref = href;
-            let normalizedPath = currentPath;
-            
-            // Handle root page
-            if (currentPath === '/' || currentPath === '/index.html') {
-                if (href === '/' || href === '../' || href === 'index.html' || href === '../index.html') {
-                    link.classList.add('active');
-                }
-            } else {
-                // For subdirectory pages, check if href matches current directory
-                const pathParts = currentPath.split('/').filter(part => part !== '');
-                if (pathParts.length > 0) {
-                    const currentDir = pathParts[0];
-                    
-                    // Check various href formats that could match current directory
-                    if (href.includes('/' + currentDir) || 
-                        href.includes(currentDir + '/') ||
-                        href.endsWith('/' + currentDir) ||
-                        (href.startsWith('../') && href.includes(currentDir))) {
-                        link.classList.add('active');
-                    }
-                }
-            }
+        // Check for exact path match
+        if (href === currentPath || 
+            (currentPath === '/' && href === '/') ||
+            (currentPath === '/index.html' && href === '/') ||
+            (currentPath.endsWith('/') && href === currentPath.slice(0, -1)) ||
+            href === currentPath + '/') {
+            link.classList.add('active');
+            activeSet = true;
         }
     });
+    
+    // If no exact match found and we're on root, highlight "Начало"
+    if (!activeSet && (currentPath === '/' || currentPath === '/index.html' || currentPath.endsWith('/index.html'))) {
+        const homeLink = document.querySelector('nav a[href="/"], nav a[href="./"], nav a[href="../"], nav a[id="nav-home"]');
+        if (homeLink) {
+            homeLink.classList.add('active');
+        }
+    }
 }
 
 // Supabase client
@@ -171,9 +166,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Apply saved title after header is loaded
         await applySavedSiteTitle();
         
-        // Setup mobile menu after header is loaded
+        // Setup mobile menu and profile dropdown after header is loaded
         setTimeout(() => {
             setupMobileMenu();
+            setupProfileDropdown();
+            setActiveNav(); // Set initial active navigation
         }, 100);
     });
     loadComponent('footer-component', basePath + 'footer.html');    
@@ -201,17 +198,17 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const timer = setInterval(() => {
                     current += increment;
                     if (current >= target) {
-                        counter.textContent = target + '%';
+                        counter.textContent = `${target}%`;
                         clearInterval(timer);
                     } else {
-                        counter.textContent = Math.floor(current) + '%';
+                        counter.textContent = `${Math.ceil(current)}%`;
                     }
                 }, 30);
             }
         });
     };
-    
-    // Запускане на брояците при скролиrane
+
+    // Intersection Observer за анимация при влизане в екрана
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -220,59 +217,105 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
         });
     });
-    
+
     const statsSection = document.querySelector('.stats');
     if (statsSection) {
         observer.observe(statsSection);
     }
-    
-    // Маркиране на активна връзка в навигацията
-    const sections = document.querySelectorAll('section[id]');
-    const navLinksAll = document.querySelectorAll('nav a');
-    
+
+    // Smooth scroll for all anchor links that don't start with http
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // Добавяне на lazy loading за изображения
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove('lazy');
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+
+    // Dynamic navigation highlighting based on scroll position
     const markActiveNav = () => {
-        const scrollPos = window.scrollY + 100;
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('nav a');
         
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.offsetHeight;
-            const sectionId = section.getAttribute('id');
-            
-            if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
-                navLinksAll.forEach(link => {
+        let current = '';
+        let foundActiveSection = false;
+        
+        // Check if we have sections with IDs for scroll-based highlighting
+        if (sections.length > 0) {
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                    foundActiveSection = true;
+                }
+            });
+
+            // If we found an active section, highlight the corresponding nav link
+            if (foundActiveSection && current) {
+                navLinks.forEach(link => {
                     link.classList.remove('active');
-                    if (link.getAttribute('href') === '#' + sectionId) {
+                    const href = link.getAttribute('href');
+                    if (href === `#${current}` || href.endsWith(`#${current}`)) {
                         link.classList.add('active');
                     }
                 });
             }
-        });
+        }
+        
+        // If no sections with IDs or no active section found, maintain page-based highlighting
+        if (!foundActiveSection) {
+            // Don't remove active class, let setActiveNav handle page-based highlighting
+            const hasActiveLink = document.querySelector('nav a.active');
+            if (!hasActiveLink) {
+                setActiveNav(); // Re-apply page-based highlighting
+            }
+        }
     };
-    
+
+    // Run on scroll
     window.addEventListener('scroll', markActiveNav);
-    
-    // Форма за контакт (ако съществува)
-    const contactForm = document.querySelector('form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Съобщението е изпратено успешно!');
-            this.reset();
-        });
-    }
-    
-    // Бутони "Научи повече"
-    const learnMoreBtns = document.querySelectorAll('.btn');
-    learnMoreBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            if (this.getAttribute('href') === '#') {
-                e.preventDefault();
-                alert('Тази функция ще бъде добавена скоро.');
+
+    // Back to top button functionality
+    const backToTopButton = document.getElementById('back-to-top');
+    if (backToTopButton) {
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.style.display = 'block';
+            } else {
+                backToTopButton.style.display = 'none';
             }
         });
-    });
-    
 
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
 
 // Setup mobile menu functionality
 function setupMobileMenu() {
@@ -280,10 +323,6 @@ function setupMobileMenu() {
     const navMenu = document.querySelector('.nav-menu');
     
     if (mobileBtn && navMenu) {
-        // Remove any existing event listeners to prevent duplicates
-        mobileBtn.removeEventListener('click', toggleMobileMenuHandler);
-        
-        // Add click event listener
         mobileBtn.addEventListener('click', toggleMobileMenuHandler);
         
         // Close mobile menu when clicking on links
@@ -306,7 +345,6 @@ function setupMobileMenu() {
     }
 }
 
-// Mobile menu toggle handler
 function toggleMobileMenuHandler() {
     const navMenu = document.querySelector('.nav-menu');
     const mobileBtn = document.querySelector('.mobile-menu-btn');
@@ -317,4 +355,50 @@ function toggleMobileMenuHandler() {
     }
 }
 
- 
+// Setup profile dropdown functionality
+function setupProfileDropdown() {
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.querySelector('.profile-dropdown');
+        const profileMenu = document.querySelector('.profile-menu');
+        
+        if (dropdown && profileMenu && !dropdown.contains(e.target)) {
+            profileMenu.classList.remove('show');
+        }
+    });
+}
+
+// Profile dropdown functionality
+function toggleProfileDropdown() {
+    const profileMenu = document.getElementById('profile-menu');
+    if (profileMenu) {
+        profileMenu.classList.toggle('show');
+    }
+}
+
+// Profile menu functions (placeholder functions for now)
+function showProfileSettings() {
+    alert('Функционалността за профил ще бъде добавена скоро!');
+}
+
+function showNotifications() {
+    alert('Функционалността за уведомления ще бъде добавена скоро!');
+}
+
+function showSettings() {
+    alert('Функционалността за настройки ще бъде добавена скоро!');
+}
+
+function handleLogout() {
+    if (confirm('Сигурни ли сте, че искате да излезете?')) {
+        alert('Изход от системата...');
+        // Here you would handle actual logout logic
+    }
+}
+
+// Make profile functions globally available
+window.toggleProfileDropdown = toggleProfileDropdown;
+window.showProfileSettings = showProfileSettings;
+window.showNotifications = showNotifications;
+window.showSettings = showSettings;
+window.handleLogout = handleLogout; 

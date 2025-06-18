@@ -1,14 +1,61 @@
 <header>
     <div class="header-container">
-        <h1><a href="/" style="text-decoration: none; color: inherit;">Кибертормоз и Дигитална Етика</a></h1>
+        <!-- Top bar with centered title and right-side profile -->
+        <div class="header-top">
+            <!-- Centered title -->
+            <h1><a href="/" style="text-decoration: none; color: inherit;">Кибертормоз и Дигитална Етика</a></h1>
+            
+            <!-- Profile dropdown (right positioned) -->
+            <div class="profile-dropdown">
+                <button class="profile-btn" onclick="toggleProfileDropdown()" aria-label="Profile menu">
+                    <div class="profile-avatar">А</div>
+                </button>
+                <div class="profile-menu" id="profile-menu">
+                    <div class="profile-header">
+                        <div class="profile-avatar-large">А</div>
+                        <div class="profile-info">
+                            <div class="profile-name">Админ</div>
+                            <div class="profile-email">admin@example.com</div>
+                        </div>
+                    </div>
+                    <div class="profile-divider"></div>
+                    <div class="profile-links">
+                        <a href="/admin/" class="profile-link">
+                            <i class="fas fa-cog"></i>
+                            Админ панел
+                        </a>
+                        <a href="#" class="profile-link" onclick="showProfileSettings()">
+                            <i class="fas fa-user"></i>
+                            Профил
+                        </a>
+                        <a href="#" class="profile-link" onclick="showNotifications()">
+                            <i class="fas fa-bell"></i>
+                            Уведомления
+                        </a>
+                        <a href="#" class="profile-link" onclick="showSettings()">
+                            <i class="fas fa-sliders-h"></i>
+                            Настройки
+                        </a>
+                    </div>
+                    <div class="profile-divider"></div>
+                    <div class="profile-actions">
+                        <a href="#" class="profile-link logout" onclick="handleLogout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Изход
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+        </div>
         
-        <!-- Mobile menu button -->
-        <button class="mobile-menu-btn" aria-label="Toggle menu">
-            <span class="hamburger-line"></span>
-            <span class="hamburger-line"></span>
-            <span class="hamburger-line"></span>
-        </button>
-        
+        <!-- Navigation menu -->
         <nav class="nav-menu">
             <ul>
                 <li><a href="/" id="nav-home">Начало</a></li>

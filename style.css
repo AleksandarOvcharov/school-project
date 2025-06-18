@@ -25,10 +25,6 @@ header {
     padding: 20px 0;
     border-bottom: 2px solid #007acc;
     margin-bottom: 30px;
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 100;
 }
 
 header h1 {
@@ -426,51 +422,70 @@ footer {
     color: #666;
 }
 
-/* Header container for mobile layout */
+/* Header layout improvements */
 .header-container {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+    width: 100%;
+    min-height: 60px;
     position: relative;
 }
 
-/* Mobile menu button (hidden by default) */
+.header-top h1 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-size: 2.2rem;
+    color: #007acc;
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.profile-dropdown {
+    display: inline-block;
+    z-index: 1001;
+    margin-left: auto;
+}
+
+/* Mobile menu button */
 .mobile-menu-btn {
     display: none;
-    flex-direction: column;
     background: none;
     border: none;
     cursor: pointer;
     padding: 8px;
-    z-index: 1001;
     border-radius: 4px;
-    transition: background 0.3s;
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    min-width: 40px;
-    min-height: 40px;
-    touch-action: manipulation;
+    flex-direction: column;
+    gap: 4px;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
 }
 
 .mobile-menu-btn:hover {
-    background: rgba(0, 122, 204, 0.1);
+    background-color: #f0f0f0;
 }
 
 .hamburger-line {
-    width: 25px;
-    height: 3px;
-    background: #007acc;
-    margin: 3px 0;
-    transition: 0.3s;
+    width: 20px;
+    height: 2px;
+    background-color: #007acc;
+    transition: all 0.3s ease;
     border-radius: 2px;
 }
 
-/* Mobile menu animation */
 .mobile-menu-btn.active .hamburger-line:nth-child(1) {
-    transform: rotate(-45deg) translate(-5px, 6px);
+    transform: rotate(45deg) translate(6px, 6px);
 }
 
 .mobile-menu-btn.active .hamburger-line:nth-child(2) {
@@ -478,12 +493,11 @@ footer {
 }
 
 .mobile-menu-btn.active .hamburger-line:nth-child(3) {
-    transform: rotate(45deg) translate(-5px, -6px);
+    transform: rotate(-45deg) translate(6px, -6px);
 }
 
-/* Navigation menu */
+/* Navigation menu positioning */
 .nav-menu {
-    order: 3;
     width: 100%;
 }
 
@@ -521,8 +535,7 @@ footer {
     }
     
     .header-container {
-        flex-wrap: nowrap;
-        justify-content: center;
+        position: relative;
     }
     
     header h1 {
@@ -626,4 +639,189 @@ ul.content-list li{
 ul.sitemap-list li{
     font-weight: bold;
     color: black;
+}
+
+/* Profile Dropdown Styles */
+.profile-dropdown {
+    position: relative;
+}
+
+.profile-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.profile-btn:hover {
+    transform: scale(1.05);
+}
+
+.profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007acc, #005999);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0, 122, 204, 0.3);
+    transition: all 0.3s ease;
+}
+
+.profile-btn:hover .profile-avatar {
+    box-shadow: 0 4px 12px rgba(0, 122, 204, 0.4);
+}
+
+.profile-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 122, 204, 0.15);
+    border: 2px solid #007acc;
+    min-width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 9999;
+    margin-top: 12px;
+}
+
+.profile-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.profile-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-avatar-large {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007acc, #005999);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 20px;
+    box-shadow: 0 2px 8px rgba(0, 122, 204, 0.3);
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.profile-email {
+    color: #666;
+    font-size: 14px;
+}
+
+.profile-divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 0 12px;
+}
+
+.profile-links,
+.profile-actions {
+    padding: 8px 0;
+}
+
+.profile-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    border-radius: 8px;
+    margin: 2px 8px;
+}
+
+.profile-link:hover {
+    background: #007acc;
+    color: white;
+    text-decoration: none;
+}
+
+.profile-link.logout {
+    color: #dc3545;
+}
+
+.profile-link.logout:hover {
+    background: #fff5f5;
+    color: #dc3545;
+}
+
+.profile-link i {
+    width: 16px;
+    font-size: 14px;
+    color: #666;
+}
+
+.profile-link:hover i {
+    color: inherit;
+}
+
+/* Mobile adjustments for profile */
+@media (max-width: 768px) {
+    .header-top {
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        position: relative;
+    }
+    
+    .header-top h1 {
+        font-size: 1.3rem;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1;
+    }
+    
+    .profile-dropdown {
+        margin-right: 10px;
+    }
+    
+    .mobile-menu-btn {
+        margin-left: 10px;
+    }
+    
+    .profile-menu {
+        right: -10px;
+        left: auto;
+        min-width: 260px;
+    }
+    
+    .profile-avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+    }
 }
