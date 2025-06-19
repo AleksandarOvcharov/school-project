@@ -166,10 +166,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Apply saved title after header is loaded
         await applySavedSiteTitle();
         
-        // Setup mobile menu and profile dropdown after header is loaded
+        // Setup mobile menu after header is loaded
         setTimeout(() => {
             setupMobileMenu();
-            setupProfileDropdown();
             setActiveNav(); // Set initial active navigation
         }, 100);
     });
@@ -355,45 +354,4 @@ function toggleMobileMenuHandler() {
     }
 }
 
-// Setup profile dropdown functionality
-function setupProfileDropdown() {
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        const dropdown = document.querySelector('.profile-dropdown');
-        const profileMenu = document.querySelector('.profile-menu');
-        
-        if (dropdown && profileMenu && !dropdown.contains(e.target)) {
-            profileMenu.classList.remove('show');
-        }
-    });
-}
-
-// Profile dropdown functionality
-function toggleProfileDropdown() {
-    const profileMenu = document.getElementById('profile-menu');
-    if (profileMenu) {
-        profileMenu.classList.toggle('show');
-    }
-}
-
-// Profile menu functions (placeholder functions for now)
-function showProfileSettings() {
-    alert('Функционалността за профил ще бъде добавена скоро!');
-}
-
-function showSettings() {
-    alert('Функционалността за настройки ще бъде добавена скоро!');
-}
-
-function handleLogout() {
-    if (confirm('Сигурни ли сте, че искате да излезете?')) {
-        alert('Изход от системата...');
-        // Here you would handle actual logout logic
-    }
-}
-
-// Make profile functions globally available
-window.toggleProfileDropdown = toggleProfileDropdown;
-window.showProfileSettings = showProfileSettings;
-window.showSettings = showSettings;
-window.handleLogout = handleLogout; 
+ 
